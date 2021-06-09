@@ -1,0 +1,37 @@
+body{
+    height: 100vh;
+    background-color: #eee;
+}
+
+.divContainer{
+    height: 50vh;
+    width: 100%;
+}
+
+.rightSide, .leftSide {
+    height: 50vh;
+    width: 100%;
+}
+
+@media screen (min-width: 768px) {
+
+    .leftSide, .rightSide {
+        height: 50vh;
+    }
+    
+}
+
+.navbar-overidden {
+    background-color: white;
+    width: 90%;
+    border-bottom: 5px #c50303 solid;
+}
+
+.form-group{
+    margin-top: 1rem;
+    
+}
+
+#jsonTree {
+    height: 90vh;
+}

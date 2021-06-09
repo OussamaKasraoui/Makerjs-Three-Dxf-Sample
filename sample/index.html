@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="author" content="Kasraoui Oussama">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="GeoJSON to XDF viewer" content="GeoJSON to .xdf CAD viewer">
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="libs/css/style.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script src="/sample/node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+    <!-- opentype.js -->
+    <!--script src="https://cdnjs.cloudflare.com/ajax/libs/opentype.js/1.0.0/opentype.min.js"></script-->
+    <!--script src="https://cdn.jsdelivr.net/npm/opentype.js@0/dist/opentype.js"></script-->
+    <script src="/sample/node_modules/opentype.js/dist/opentype.js"></script>
+
+
+    <script src="/sample/node_modules/dxf-parser/dist/dxf-parser.js"></script>
+    <script src="/sample/node_modules/jquery/dist/jquery.min.js"></script>
+
+    <!-- Three.js -->
+    <script src="/sample/node_modules/three/build/three.min.js"></script>
+
+    <!-- added by me    Makerjs-->
+    <script src="https://cdn.jsdelivr.net/npm/makerjs@0/target/js/browser.maker.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bezier-js@2/bezier.js"></script>
+
+    <script src="/dist/three-dxf.js"></script>
+    <style>
+        #cad-view {
+            display: inline-block;
+            margin: 10px 0;
+            /*			border: 1px solid #666;*/
+        }
+
+        #cad-view>canvas {
+            border: 1px solid #666;
+        }
+
+        .progress {
+            opacity: 0;
+            -webkit-transition: opacity 1s linear;
+            -moz-transition: opacity 1s linear;
+            -ms-transition: opacity 1s linear;
+            -o-transition: opacity 1s linear;
+            transition: opacity 1s linear;
+        }
+
+        .progress.loading {
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="row">
+        <nav class="navbar navbar-overidden mx-auto">
+            <a class="navbar-brand" href="#">
+                <img src="/sample/data/cropped-Mapping.png" alt="mapping-technolofgies" style="width:120px;">
+            </a>
+            <div role="form">
+                <div class="form-group">
+                    <label for="exampleInputFile">Choose a JSON file</label>
+                    <input type="file" accept=".json" id="dxf" name="file">
+                    <div class="progress progress-striped" style="width: 300px;">
+                        <div id="file-progress-bar" class="progress-bar progress-bar-success" role="progressbar"
+                            style="width: 0">
+                        </div>
+                    </div>
+                    <!--div id="file-description" class="help-block"></div-->
+                </div>
+
+            </div>
+        </nav>
+    </div>
+
+    <div class="row no-gutters data_container">
+
+        <div class="col-lg-6 col-md-6 col-sm-12 col-6 leftSide" style="border: 1px red solid;">
+            
+                <div id="jsonTree" class="table-responsive">
+
+                    <table id="jsonT" class="table table-hover table-striped table-bordered table-sm" >
+                        <thead>
+                            <tr>
+                                <th scope="col">N ordre</th>
+                                <th scope="col">NUMERO DOSSIER</th>
+                                <th scope="col">Nom AR</th>
+                                <th scope="col">NOm FR</th>
+                                <th scope="col">CIN</th>
+                                <th scope="col">PROVINCE</th>
+                                <th scope="col">CERCLE</th>
+                                <th scope="col">CAIDAT</th>
+                                <th scope="col">COMMUNE</th>
+                                <th scope="col">LIEUX RESIDENCE</th>
+                                <th scope="col">QUALITE</th>
+                                <th scope="col">cote part empietement</th>
+                                <th scope="col">COLLECTIVITE REF</th>
+                                <th scope="col">REF FONCIERE</th>
+                                <th scope="col">CONSISTANCE</th>
+                                <th scope="col">CODE PARCELLE</th>
+                                <th scope="col">SEXE</th>
+                                <th scope="col">FRACTION</th>
+                                <th scope="col">LISTE AD</th>
+                                <th scope="col">N ORDRE LISTE AD</th>
+                                <th scope="col">Superficie Si</th>
+                                <th scope="col">PLU VALU EXPLOITATION</th>
+                                <th scope="col">LIVRAISON</th>
+                                <th scope="col">INTEGRATION</th>
+                                <th scope="col">ORGANISME</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="jsonTable">
+
+                        </tbody>
+                    </table>
+                </div>
+        </div>
+
+        <div class="col-lg-6 col-md-6 col-sm-12 col-6 rightSide" style="border: 1px yellow solid;">
+            <div id="cad-view">
+
+            </div>
+        </div>
+
+    </div>
+
+    <script src="index.js"></script>
+    <!--script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script-->
+</body>
+
+</html>
