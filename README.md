@@ -1,28 +1,17 @@
+# Makerjs Three-Dxf Sample
+.dxf file builder from JSON file using [MakerJS (Microsoft's Javascript Library)](https://github.com/Microsoft/maker.js) to generate a .DXF file, in addition to [THREE-DXF (project wich takes care of THREE Library to output the DXF content on the Web browser)](https://github.com/gdsestimating/three-dxf).
 
-# Three-Dxf
+## Installation
 
-**Three-Dxf** is a javascript viewer for dxf files. It takes dxf objects produced from Dxf-Parser and renders them using
- three.js.
+Use the package manager [pip](https://pip.pypa.io/en/stable/) to install foobar.
 
-#### Install
-```
+```bash
 npm install three-dxf
 ```
 
-For now we recommend cloning the repo, and starting with our sample. See **Run Samples** below.
+## Usage
 
-![Example of the viewer](https://github.com/gdsestimating/three-dxf/blob/screenshots/screenshots/three-dxf-screenshot.png?raw=true "What the sample looks like")
-
-#### Usage
-```javascript
-// See index.js in the sample for more details
-var parser = new window.DxfParser();
-var dxf = parser.parseSync(fileReader.result);
-cadCanvas = new ThreeDxf.Viewer(dxf, document.getElementById('cad-view'), 400, 400);
-```
-
-#### Run Samples
-```
+```python
 # first, compile three-dxf
 > npm install
 > npm run build
@@ -37,10 +26,6 @@ cadCanvas = new ThreeDxf.Viewer(dxf, document.getElementById('cad-view'), 400, 4
 > http-server .
 # use `http-server -c-1 .` to prevent caching
 ```
-
-After performing the steps above, you can see the example at [http://127.0.0.1:8080/sample/index.html](http://127.0.0.1:8080/sample/index.html). You can use the dxf file included in the sample. **NOTE: the latest version of http-server will go into a redirect loop if you exlcude "/index.html" from the url.**
-
-
 #### Supported DXF Features
 Supports:
 * Header
@@ -59,3 +44,11 @@ Does not yet support:
 * MText
 * other less common objects and entities.
 
+
+## Contributing
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+
+Please make sure to update tests as appropriate.
+
+## License
+[MIT](https://choosealicense.com/licenses/mit/)
