@@ -111,10 +111,14 @@ function onSuccess(evt) {
             $('#jsonTable').html(tableRows);
 
 
-    var model = allShapes(jsonObject);
+    //var model = allShapes(jsonObject);
     //var model = trialText();
 
-    render(model);
+    setText.then(font => {
+        render(font);        
+    })
+
+        //render(model);
 
 }
 
@@ -131,25 +135,17 @@ function handleDragOver(evt) {
 function render(object) {
     // XDF file handling
     var parser = new window.DxfParser();
+    var loader = new THREE.FontLoader();
     var model;
     
-    /*  for TEXT tests reasons  */
-    if (object.source && object.source == "text")
-    {
-        var model = object.model;
-    }else{
-        var model = makerjs.exporter.toDXF(object);
-    }
-
+    model = makerjs.exporter.toDXF(object);
+    
     var dxf = parser.parseSync(model);
 
     // Three.js changed the way fonts are loaded, and now we need to use FontLoader to load a font
     //  and enable TextGeometry. See this example http://threejs.org/examples/?q=text#webgl_geometry_text
     //  and this discussion https://github.com/mrdoob/three.js/issues/7398 
-    var font;
-    var loader = new THREE.FontLoader();
-    loader.load('fonts/helvetiker_regular.typeface.json', function (response) {
-        font = response;
+    loader.load('fonts/helvetiker_regular.typeface.json', function (font) {
         $('#cad-view').empty();
         cadCanvas = new window.ThreeDxf.Viewer(dxf, document.getElementById('cad-view'), 700, 700, font);
     });
@@ -484,8 +480,13 @@ function singleShape(row) {
 
 // trial
 function trialText(){
-    
     var modelOPENTYPEjs;
+    var model = {
+        layer : "black",
+        units: makerjs.unitType.Millimeter,
+        models: {},
+        paths: {}
+    }
 
     opentype.load('/sample/fonts/FreeSans-LrmZ.ttf', function (err, fontOpenTypeJS) {
 
@@ -494,9 +495,31 @@ function trialText(){
         } else {
     
             modelOPENTYPEjs = new makerjs.models.Text(fontOpenTypeJS, 'Wa akhiiiiirane  :D', 100);
+            model.models[0] = modelOPENTYPEjs;
         }
+    return model;
     });    
 
-    return {"model": modelOPENTYPEjs,
-            "source": 'text'};
 }
+
+const setText = new Promise((resolve, reject) => {
+    var modelOPENTYPEjs;
+    var model = {
+        layer : "black",
+        units: makerjs.unitType.Millimeter,
+        models: {},
+        paths: {}
+    }
+
+    opentype.load('/sample/fonts/FreeSans-LrmZ.ttf', function (err, fontOpenTypeJS) {
+
+        if (err) {
+            document.getElementById('cad-view').innerText = 'the font could not be loaded :(';
+        } else {
+    
+            modelOPENTYPEjs = new makerjs.models.Text(fontOpenTypeJS, 'Wa akhiiiiirane  :D', 100);
+            model.models[0] = modelOPENTYPEjs;
+            resolve(model);
+        }
+    }); 
+});
