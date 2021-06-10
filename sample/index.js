@@ -158,7 +158,7 @@ function render(object) {
     //  and this discussion https://github.com/mrdoob/three.js/issues/7398 
     loader.load('fonts/helvetiker_regular.typeface.json', function (font) {
         $('#cad-view').empty();
-        cadCanvas = new window.ThreeDxf.Viewer(dxf, document.getElementById('cad-view'), 700, 700, font);
+        cadCanvas = new window.ThreeDxf.Viewer(dxf, document.getElementById('cad-view'), 760, 600, font);
     });
 
 }
@@ -167,13 +167,21 @@ function render(object) {
 $(document).on("click", "#jsonT td", function (e) {
     row_selected = e.currentTarget.id.slice(4);
     var data_backup = $('#row_' + row_selected + '_bu').html();
-    
+
     var model = myModel();
     var coords = [];
+
+
+
     var textLayer = {
-        layer: "green",
-        models:{},
-        paths: {}
+        origin: [0, 0],
+        layer: 'black',
+        models: {
+            title: {
+            }
+        },
+        paths: {
+        }
     };
 
 
@@ -181,15 +189,76 @@ $(document).on("click", "#jsonT td", function (e) {
         data = [data_backup];
     }
     /////////////   TEXT     ////////////////
-    textLayer.models.title = new makerjs.models.Text(_font, 'Wa akhiiiiirane  :D', 72);
-    textLayer.models.title.origin = [153.890, 270];
+    textLayer.models.title = new makerjs.models.Text(_font, data[row_selected].properties.CAIDAT, 72);
 
-    textLayer.models.stitle = new makerjs.models.Text(_font, data[row_selected].properties.CAIDAT, 72);
-    textLayer.models.stitle.origin = [20, 90];
-    
-    
-    
-    model.models[0] = textLayer;
+    /*title  s4*/
+    textLayer.models.l1 = new makerjs.models.Text(_font, 'ROYAUME DU MAROC', 12);
+    textLayer.models.l1.origin = [273.560, 943,730]
+    textLayer.models.l1.layer = "red";
+
+    textLayer.models.l2 = new makerjs.models.Text(_font, 'Ministère de l\'interieur', 12);
+    textLayer.models.l1.origin = [0, 200]
+    textLayer.models.l2.layer = "green";
+
+    textLayer.models.l3 = new makerjs.models.Text(_font, 'Secrétariat Général', 12);
+    textLayer.models.l1.origin = [0, 300]
+    textLayer.models.l3.layer = "yellow";
+
+    textLayer.models.l4 = new makerjs.models.Text(_font, 'Direction des affaires', 12);
+    textLayer.models.l1.origin = [0, 400]
+    textLayer.models.l4.layer = "bleu";
+
+
+    /*plan parcellaire */
+    textLayer.models.title = new makerjs.models.Text(_font, 'plan parcellaire Green - AEFHIKLMNTVWXYZ', 24);
+
+    /* localisation administratif */
+    textLayer.models.title = new makerjs.models.Text(_font, 'plan parcellaire Green - AEFHIKLMNTVWXYZ', 24);
+    textLayer.models.title = new makerjs.models.Text(_font, 'plan parcellaire Green - AEFHIKLMNTVWXYZ', 24);
+
+    /* données fonciere */
+    textLayer.models.title = new makerjs.models.Text(_font, 'plan parcellaire Green - AEFHIKLMNTVWXYZ', 24);
+    textLayer.models.title = new makerjs.models.Text(_font, 'plan parcellaire Green - AEFHIKLMNTVWXYZ', 24);
+
+    /* données de l'occupation */
+    textLayer.models.title = new makerjs.models.Text(_font, 'plan parcellaire Green - AEFHIKLMNTVWXYZ', 24);
+    textLayer.models.title = new makerjs.models.Text(_font, 'plan parcellaire Green - AEFHIKLMNTVWXYZ', 24);
+
+    /* ta bleau des superficie */
+    textLayer.models.title = new makerjs.models.Text(_font, 'plan parcellaire Green - AEFHIKLMNTVWXYZ', 24);
+    textLayer.models.title = new makerjs.models.Text(_font, 'plan parcellaire Green - AEFHIKLMNTVWXYZ', 24);
+
+    /* echel */
+    textLayer.models.title = new makerjs.models.Text(_font, 'plan parcellaire Green - AEFHIKLMNTVWXYZ', 24);
+    textLayer.models.title = new makerjs.models.Text(_font, 'plan parcellaire Green - AEFHIKLMNTVWXYZ', 24);
+
+    /* photo */
+    textLayer.models.title = new makerjs.models.Text(_font, 'plan parcellaire Green - AEFHIKLMNTVWXYZ', 24);
+    textLayer.models.title = new makerjs.models.Text(_font, 'plan parcellaire Green - AEFHIKLMNTVWXYZ', 24);
+
+    textLayer.models.title = new makerjs.models.Text(_font, 'plan parcellaire Green - AEFHIKLMNTVWXYZ', 24);
+    textLayer.models.title = new makerjs.models.Text(_font, 'plan parcellaire Green - AEFHIKLMNTVWXYZ', 24);
+
+    /* apercue satellitaire */
+    textLayer.models.title = new makerjs.models.Text(_font, 'plan parcellaire Green - AEFHIKLMNTVWXYZ', 24);
+    textLayer.models.title = new makerjs.models.Text(_font, 'plan parcellaire Green - AEFHIKLMNTVWXYZ', 24);
+
+    /* appercue de l'exploiteur */
+    textLayer.models.title = new makerjs.models.Text(_font, 'plan parcellaire Green - AEFHIKLMNTVWXYZ', 24);
+    textLayer.models.title = new makerjs.models.Text(_font, 'plan parcellaire Green - AEFHIKLMNTVWXYZ', 24);
+
+    /* topographe */
+    textLayer.models.title = new makerjs.models.Text(_font, 'plan parcellaire Green - AEFHIKLMNTVWXYZ', 24);
+    textLayer.models.title = new makerjs.models.Text(_font, 'plan parcellaire Green - AEFHIKLMNTVWXYZ', 24);
+
+    /* Visa */
+    textLayer.models.title = new makerjs.models.Text(_font, 'plan parcellaire Green - AEFHIKLMNTVWXYZ', 24);
+    textLayer.models.title = new makerjs.models.Text(_font, 'plan parcellaire Green - AEFHIKLMNTVWXYZ', 24);
+
+
+
+
+    model.models["textLayer"] = textLayer;
 
     ////////////////////////////////////////
 
@@ -427,16 +496,6 @@ function myModel() {
         }
     }
 
-    //set round rectangle corner's color
-    output.models.s13.paths.BottomLeft.layer = "black";
-    output.models.s13.paths.BottomRight.layer = "black";
-    output.models.s13.paths.TopRight.layer = "black";
-    output.models.s13.paths.TopLeft.layer = "black";
-
-    output.models.s14.paths.BottomLeft.layer = "black";
-    output.models.s14.paths.BottomRight.layer = "black";
-    output.models.s14.paths.TopRight.layer = "black";
-    output.models.s14.paths.TopLeft.layer = "black";
 
     //move Rectangle 
     output.models.s2.origin = [404.00, 0];		//ok
