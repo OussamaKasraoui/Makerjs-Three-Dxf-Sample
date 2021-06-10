@@ -3,11 +3,14 @@ const makerjs = require('makerjs');
 
 var progress = document.getElementById('file-progress-bar');
 var $progress = $('.progress');
-const data = [];
 
 var $cadview = $('#cad-view');
 var dxfContentEl = $('#dxf-content')[0];
 var cadCanvas;
+
+var _font;
+const data = [];
+var row_selected;
 
 // Setup the dnd listeners.
 var dropZone = $('.drop-zone');
@@ -105,20 +108,16 @@ function onSuccess(evt) {
             + "<td scope='row' id='row_" + i + "'>" + arr.properties.LIVRAISON + "</td>"
             + "<td scope='row' id='row_" + i + "'>" + arr.properties.INTEGRATION + "</td>"
             + "<td scope='row' id='row_" + i + "'>" + arr.properties.ORGANISME + "</td>" +
+            + "<td scope='row' id='row_" + i + "_bu' hidden>" + JSON.stringify(arr) + "</td>" +
             "</tr>";
-            
+
     }
-            $('#jsonTable').html(tableRows);
+    $('#jsonTable').html(tableRows);
 
 
-    //var model = allShapes(jsonObject);
-    //var model = trialText();
+    var model = allShapes(jsonObject);
 
-    setText.then(font => {
-        render(font);        
-    })
-
-        //render(model);
+    render(model);
 
 }
 
@@ -130,6 +129,18 @@ function handleDragOver(evt) {
 
 
 // Oussama Kasraoui
+/*      loading Open Types.js fonts     */
+$(document).ready(function () {
+
+    opentype.load('/sample/fonts/FreeSans-LrmZ.ttf', function (err, fontOpenTypeJS) {
+
+        if (err) {
+            aler('the font could not be loaded :(');
+        } else {
+            _font = fontOpenTypeJS;
+        }
+    });
+});
 
 /*      render xdf object       */
 function render(object) {
@@ -137,9 +148,9 @@ function render(object) {
     var parser = new window.DxfParser();
     var loader = new THREE.FontLoader();
     var model;
-    
+
     model = makerjs.exporter.toDXF(object);
-    
+
     var dxf = parser.parseSync(model);
 
     // Three.js changed the way fonts are loaded, and now we need to use FontLoader to load a font
@@ -154,11 +165,87 @@ function render(object) {
 
 /*     Table Row Selected     */
 $(document).on("click", "#jsonT td", function (e) {
-    var row = e.currentTarget.id.slice(4);
+    row_selected = e.currentTarget.id.slice(4);
+    var data_backup = $('#row_' + row_selected + '_bu').html();
     
-    var model = singleShape(row);
+    var model = myModel();
+    var coords = [];
+    var textLayer = {
+        layer: "green",
+        models:{},
+        paths: {}
+    };
 
+
+    if (!data) {
+        data = [data_backup];
+    }
+    /////////////   TEXT     ////////////////
+    textLayer.models.title = new makerjs.models.Text(_font, 'Wa akhiiiiirane  :D', 72);
+    textLayer.models.title.origin = [153.890, 270];
+
+    textLayer.models.stitle = new makerjs.models.Text(_font, data[row_selected].properties.CAIDAT, 72);
+    textLayer.models.stitle.origin = [20, 90];
+    
+    
+    
+    model.models[0] = textLayer;
+
+    ////////////////////////////////////////
+
+
+    // get parcelle points
+    data[row_selected].geometry.coordinates.forEach(element => {
+        element.forEach(elm => {
+            elm.forEach(el => {
+                coords.push(el);
+            })
+        });
+    });
+
+    // make model of points
+    var mdl = new makerjs.models.ConnectTheDots(false, coords);
+
+    // sub template makes the "Parcell" gets to the center of the container
+    var plan = {
+        layer: "red",
+        origin: [202, 282],
+        models: {
+            frame: new makerjs.models.Rectangle(202.00, 282.200)
+        },
+        paths: {
+        }
+    }
+
+    // hide sub template frames
+    delete plan.models.frame;
+
+    // append "Parcelle" to the sub Template (centerer)
+    plan.models.shape = {
+        units: makerjs.unitType.Centimeter,
+        models: {
+            parcelle: makerjs.model.scale(mdl, 100000)
+        },
+        paths: {
+        }
+    }
+
+    // append sub template to  S2  sub Model in myModel() 
+    model.models.s2.models.shape = plan;
+    // append textLayer to  S1  sub Model in myModel() 
+    model.models.s1.models.text = textLayer;
+
+    // let sub template centering sub models  
+    makerjs.model.center(plan.models.shape);
+
+
+
+
+
+    ///////////////////////////////////////////////var model = singleShape(row_selected);
     render(model);
+
+
 });
 
 
@@ -230,7 +317,7 @@ function renderSVG(SVGobject) {
 }
 
 /*      DXF Plan Model            */
-function myModel(jsonCoords) {
+function myModel() {
 
     var output = {
         layer: "black",
@@ -239,13 +326,19 @@ function myModel(jsonCoords) {
         },
         models: {
             // Outer Left Rectangle               
-            s1: new makerjs.models.Rectangle(404.00, 564.400),
-            // Outer Right Rectangle
-            s2: {
-                layer: "blue",
+            s1: {
+                layer: "black",
                 paths: {},
                 models: {
-                  mainFrame : new makerjs.models.Rectangle(404.00, 564.400)
+                    mainFrame: new makerjs.models.Rectangle(404.00, 564.400),
+                }
+            },
+            // Outer Right Rectangle
+            s2: {
+                layer: "black",
+                paths: {},
+                models: {
+                    mainFrame: new makerjs.models.Rectangle(404.00, 564.400)
                 }
             },
             //Inner Left Rectangle
@@ -309,10 +402,6 @@ function myModel(jsonCoords) {
                     }
                 }
             },
-            //Inner left Rectangle visa left           
-            // s13: new makerjs.models.RoundRectangle(173.850, 57.600, 8),
-            // //Inner left Rectangle visa right
-            // s14: new makerjs.models.RoundRectangle(170.940, 47.450, 8),
             //Inner left Rectangle
             s15: new makerjs.models.Rectangle(92.820, 10.680),
             //Inner left Rectangle
@@ -335,23 +424,6 @@ function myModel(jsonCoords) {
             s24: new makerjs.models.Rectangle(175.570, 66.3680),
             //Inner left Rectangle
             s25: new makerjs.models.Rectangle(327.070, 21.420),
-            //Inner left Rectangle
-            //allShapes: allShapes(jsonCoords)
-            //Inner left Rectangle
-            // s26: new makerjs.models.Rectangle(364.660, 548.210),
-            // //Inner left Rectangle
-            // s27: new makerjs.models.Rectangle(364.660, 548.210),
-            // //Inner left Rectangle
-            // s28: new makerjs.models.Rectangle(364.660, 548.210),
-            // //Inner left Rectangle
-            // s29: new makerjs.models.Rectangle(364.660, 548.210),
-            // //Inner left Rectangle
-            // s30: new makerjs.models.Rectangle(364.660, 548.210),
-            // //Inner left Rectangle
-            // s31: new makerjs.models.Rectangle(364.660, 548.210),
-            // //Inner left Rectangle
-            // s32: new makerjs.models.Rectangle(364.660, 548.210)
-
         }
     }
 
@@ -401,7 +473,7 @@ function myModel(jsonCoords) {
 function allShapes(jsonCoords) {
 
     var model = {
-        layer : "black",
+        layer: "black",
         units: makerjs.unitType.Millimeter,
         models: {},
         paths: {}
@@ -424,102 +496,5 @@ function allShapes(jsonCoords) {
             i++;
         });
     });
-    return model;    
-}
-
-// takes array of coordinates
-// returns MakerJS model
-function setPaths(jsonCoords) {
-    return new makerjs.models.ConnectTheDots(false, allShapes(jsonCoords))
-
-}
-
-//  takes Table row id
-//  return model object
-function singleShape(row) {
-    row = parseInt(row);
-    var model = myModel(row);
-    var coords = [];
-    
-    data[row].geometry.coordinates.forEach(element => {
-        element.forEach(elm => {
-            elm.forEach(el => {
-                coords.push(el);
-            })
-        });
-    });
-
-    var mdl = new makerjs.models.ConnectTheDots(false, coords );
-
-    var plan = {
-        layer: "red",
-      	origin: [202, 282],
-        models: {
-            frame:  new makerjs.models.Rectangle(202.00, 282.200)
-        },
-        paths: {
-        }
-    }
-    
-    delete plan.models.frame;
-
-    plan.models.shape = {
-        units: makerjs.unitType.Centimeter,
-        models: {
-          pln: makerjs.model.scale(mdl, 100000)
-        },
-        paths: {
-        }
-    }
-
-    model.models.s2.models.shape = plan;
-  	makerjs.model.center(plan.models.shape);
-
-    return model;    
-}
-
-// trial
-function trialText(){
-    var modelOPENTYPEjs;
-    var model = {
-        layer : "black",
-        units: makerjs.unitType.Millimeter,
-        models: {},
-        paths: {}
-    }
-
-    opentype.load('/sample/fonts/FreeSans-LrmZ.ttf', function (err, fontOpenTypeJS) {
-
-        if (err) {
-            document.getElementById('cad-view').innerText = 'the font could not be loaded :(';
-        } else {
-    
-            modelOPENTYPEjs = new makerjs.models.Text(fontOpenTypeJS, 'Wa akhiiiiirane  :D', 100);
-            model.models[0] = modelOPENTYPEjs;
-        }
     return model;
-    });    
-
 }
-
-const setText = new Promise((resolve, reject) => {
-    var modelOPENTYPEjs;
-    var model = {
-        layer : "black",
-        units: makerjs.unitType.Millimeter,
-        models: {},
-        paths: {}
-    }
-
-    opentype.load('/sample/fonts/FreeSans-LrmZ.ttf', function (err, fontOpenTypeJS) {
-
-        if (err) {
-            document.getElementById('cad-view').innerText = 'the font could not be loaded :(';
-        } else {
-    
-            modelOPENTYPEjs = new makerjs.models.Text(fontOpenTypeJS, 'Wa akhiiiiirane  :D', 100);
-            model.models[0] = modelOPENTYPEjs;
-            resolve(model);
-        }
-    }); 
-});
