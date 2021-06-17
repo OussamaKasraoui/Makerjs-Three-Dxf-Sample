@@ -1,5 +1,6 @@
+//const geo = require('geometric');
+//const turf = require('./turf');
 const makerjs = require('makerjs');
-//var opentype = require('https://cdnjs.cloudflare.com/ajax/libs/opentype.js/1.0.0/opentype.min.js');
 
 var progress = document.getElementById('file-progress-bar');
 var $progress = $('.progress');
@@ -8,10 +9,14 @@ var $cadview = $('#cad-view');
 var dxfContentEl = $('#dxf-content')[0];
 var cadCanvas;
 
-var _font;
 const data = [];
+var _font;
 var row_selected;
 var boundaries;
+var echelle;
+
+var allParcelle = [];
+var allCoords = [];
 
 // Setup the dnd listeners.
 var dropZone = $('.drop-zone');
@@ -79,9 +84,16 @@ function onSuccess(evt) {
     var tableRows = '';
 
     for (var i = 0; i < jsonObject.features.length; i++) {
+        // set element id
         jsonObject.features[i].idRow = i;
+
         var arr = jsonObject.features[i];
+        // save element to array for later use
         data.push(arr);
+        // save coordinates for later use 
+        allCoords.push(arr.geometry.coordinates);
+
+
         tableRows +=
             "<tr>"
             + "<td scope='row' id='row_" + i + "'>" + arr.properties.N_ordre + "</td>"
@@ -111,15 +123,12 @@ function onSuccess(evt) {
             + "<td scope='row' id='row_" + i + "'>" + arr.properties.ORGANISME + "</td>" +
             + "<td scope='row' id='row_" + i + "_bu' hidden>" + JSON.stringify(arr) + "</td>" +
             "</tr>";
-
     }
     $('#jsonTable').html(tableRows);
 
 
     var model = allShapes(jsonObject);
-
     boundaries = model;
-
     render(model);
 
 }
@@ -133,7 +142,7 @@ function handleDragOver(evt) {
 
 // Oussama Kasraoui
 /*      get Scaling Factor        */
-function getScale(model, container){
+function getScale(model, container, stage){
     // scale Factor 
     var factor;
 
@@ -152,9 +161,13 @@ function getScale(model, container){
     // finding the scalling direction small2big or big2small
     if(cBase > mBase){
         factor = (parseInt(cBase / mBase));
+        stage ==="loading" ? echelle = " 1 / " + factor.toString() : null;
     }else{
         factor = parseInt(mBase /cBase);
+        stage ==="loading" ? echelle = factor.toString() + " : 1" : null;
     }
+
+    
     
     return factor / 2.5;
 }
@@ -179,6 +192,10 @@ function render(object) {
     var model;
 
     model = makerjs.exporter.toDXF(object);
+
+    $('#text').val(model.toString());
+    $('#test').html("Now you can press to download");
+
 
     var dxf = parser.parseSync(model);
 
@@ -237,7 +254,18 @@ $(document).on("click", "#jsonT td", function (e) {
                 layer: "black",
                 models: {
                 }
+            },
+            echelle:{
+                layer: "black",
+                models: {
+                }
+            },
+            visa:{
+                layer: "black",
+                models: {
+                }
             }
+
         },
         paths: {
         }
@@ -259,8 +287,11 @@ $(document).on("click", "#jsonT td", function (e) {
     });
 
     // make model of points
-    var mdl = new makerjs.models.ConnectTheDots(false, coords);
-    var _mdl = mdl;
+    var mdl = function (coords_) {
+        this.model = new makerjs.models.ConnectTheDots(false, coords_);
+        return this.model;
+    }
+    
 
     /////////////   TEXT     ////////////////
     ////////////    Variables to use:   ayant-droit
@@ -268,20 +299,20 @@ $(document).on("click", "#jsonT td", function (e) {
     // /* textLayer.models.title = new makerjs.models.Text(_font, data[row_selected].properties.CAIDAT, 72);
 
     /*title  s4*/
-    textLayer.models.titre.models.l1 = new makerjs.models.Text(_font, 'ROYAUME DU MAROCF', 6);
+    textLayer.models.titre.models.l1 = new makerjs.models.Text(_font, 'ROYAUME DU MAROC', 6);
     textLayer.models.titre.models.l1.origin = [154.440, 547.760]
     textLayer.models.titre.models.l1.layer = "red";
 
-    textLayer.models.titre.models.l2 = new makerjs.models.Text(_font, 'Ministère de l\'interieurF', 6);
-    textLayer.models.titre.models.l2.origin = [154.440, 539.760]
+    textLayer.models.titre.models.l2 = new makerjs.models.Text(_font, 'Ministère de l\'interieur', 6);
+    textLayer.models.titre.models.l2.origin = [156.440, 539.760]
     textLayer.models.titre.models.l2.layer = "green";
 
-    textLayer.models.titre.models.l3 = new makerjs.models.Text(_font, 'Secrétariat GénéralF', 6);
-    textLayer.models.titre.models.l3.origin = [154.440, 531.760]
+    textLayer.models.titre.models.l3 = new makerjs.models.Text(_font, 'Secrétariat Général', 6);
+    textLayer.models.titre.models.l3.origin = [158.440, 531.760]
     textLayer.models.titre.models.l3.layer = "black";
 
-    textLayer.models.titre.models.l4 = new makerjs.models.Text(_font, 'Direction des affairesF', 6);
-    textLayer.models.titre.models.l4.origin = [154.440, 523.760]
+    textLayer.models.titre.models.l4 = new makerjs.models.Text(_font, 'Direction des affaires', 6);
+    textLayer.models.titre.models.l4.origin = [156.440, 523.760]
     textLayer.models.titre.models.l4.layer = "black";
 
 
@@ -371,16 +402,16 @@ $(document).on("click", "#jsonT td", function (e) {
 
 
 
-    /* echel */
-    // textLayer.models.title = new makerjs.models.Text(_font, 'plan parcellaire Green - AEFHIKLMNTVWXYZ', 24);
-    // textLayer.models.title = new makerjs.models.Text(_font, 'plan parcellaire Green - AEFHIKLMNTVWXYZ', 24);
+    // /* echel */
+    textLayer.models.echelle = new makerjs.models.Text(_font, "Échelle: "+echelle, 10);
+    textLayer.models.echelle.origin = [206, 316];
+    textLayer.models.echelle.layer = "black";
 
-    // /* photo */
-    // textLayer.models.title = new makerjs.models.Text(_font, 'plan parcellaire Green - AEFHIKLMNTVWXYZ', 24);
-    // textLayer.models.title = new makerjs.models.Text(_font, 'plan parcellaire Green - AEFHIKLMNTVWXYZ', 24);
 
+    /* photo */
     // textLayer.models.title = new makerjs.models.Text(_font, 'plan parcellaire Green - AEFHIKLMNTVWXYZ', 24);
     // textLayer.models.title = new makerjs.models.Text(_font, 'plan parcellaire Green - AEFHIKLMNTVWXYZ', 24);
+    
 
     // /* apercue satellitaire */
     textLayer.models.satellitaire = new makerjs.models.Text(_font, 'Aperçu sur fond d\'image Satellitaire en date du ' + new Date().toLocaleDateString(), 6.5);
@@ -399,7 +430,7 @@ $(document).on("click", "#jsonT td", function (e) {
             shape: {
                 units: makerjs.unitType.Centimeter,
                 models: {
-                    parcelle: makerjs.model.scale(_mdl, /* 100000 */ getScale(_mdl, model.models.s17.models.mainFrame))
+                    parcelle: makerjs.model.scale(mdl(coords), /*_mdl 100000 _mdl*/ getScale(mdl(coords), model.models.s17.models.mainFrame, null))
                 },
                 paths: {
                 }
@@ -424,11 +455,15 @@ $(document).on("click", "#jsonT td", function (e) {
     textLayer.models.exploitation.origin = [26.740, 177.760];
     textLayer.models.exploitation.layer = "black";
 
-    textLayer.models.exploitation.models.parcelle = makerjs.cloneObject(model.models.s16); //new makerjs.models.Rectangle(174.420, 102.960);//new makerjs.models.Text(_font, "Numéro du Dossier: " + data[row_selected].properties.NUMERO_DOSSIER, 6);
-    textLayer.models.exploitation.models.parcelle.origin = [-1.7, -105] ;
-    //textLayer.models.satellitaire.models.parcelle.layer = "black";
+    textLayer.models.exploitation.models.t1 = new makerjs.models.Text(_font, data[row_selected].properties.N_ordre, 5);
+    textLayer.models.exploitation.models.t1.origin = [10, -10] ;
+    textLayer.models.exploitation.models.t1.layer = "black";
 
-    //var b = makerjs.model.outline(mdl, 10);
+    textLayer.models.exploitation.models.l1 = new makerjs.models.ConnectTheDots(false, [[14, -12], [100, -60]] );
+    textLayer.models.exploitation.models.l1.layer = "red";
+
+    textLayer.models.exploitation.models.parcelle = makerjs.cloneObject(model.models.s16);
+    textLayer.models.exploitation.models.parcelle.origin = [-1.7, -105] ;
 
     var _plan_ = {
         layer: "blue",
@@ -438,7 +473,7 @@ $(document).on("click", "#jsonT td", function (e) {
             shape: {
                 units: makerjs.unitType.Centimeter,
                 models: {
-                    parcelle: (makerjs.model.scale(boundaries, /* 100000 */ getScale(boundaries, model.models.s16.models.mainFrame)*1.2))
+                    parcelle: (makerjs.model.scale(mdl(coords) , /*boundaries 100000 boundaries*/ getScale(mdl(coords), model.models.s16.models.mainFrame, null)*1.2))
                 },
                 paths: {
                 }
@@ -456,14 +491,19 @@ $(document).on("click", "#jsonT td", function (e) {
     // let sub template centering sub models  
     makerjs.model.center(_plan_.models.shape);
 
-    // /* topographe */
-    // textLayer.models.title = new makerjs.models.Text(_font, 'plan parcellaire Green - AEFHIKLMNTVWXYZ', 24);
-    // textLayer.models.title = new makerjs.models.Text(_font, 'plan parcellaire Green - AEFHIKLMNTVWXYZ', 24);
+    
 
-    // /* Visa */
-    // textLayer.models.title = new makerjs.models.Text(_font, 'plan parcellaire Green - AEFHIKLMNTVWXYZ', 24);
-    // textLayer.models.title = new makerjs.models.Text(_font, 'plan parcellaire Green - AEFHIKLMNTVWXYZ', 24); */
+    /* topographe */
+    // textLayer.models.title = new makerjs.models.Text(_font, 'plan parcellaire Green - AEFHIKLMN8YZ', 24);
 
+    /* Visa */
+    textLayer.models.visa = new makerjs.models.Text(_font, 'Visa:', 10);
+    textLayer.models.visa.origin = [280, 58];
+    textLayer.models.visa.layer = "black";
+
+    textLayer.models.visa.models.l1 = new makerjs.models.ConnectTheDots(false, [[-1, -1], [23, -1]]);
+    textLayer.models.visa.models.l1.layer = "black";
+    
 
     model.models["textLayer"] = textLayer;
 
@@ -474,7 +514,7 @@ $(document).on("click", "#jsonT td", function (e) {
 
 
 
-    // sub template makes the "Parcell" gets to the center of the container
+    // Parcelle Layer container
     var plan =  {
         layer: "red",
         origin: [202, 282],
@@ -483,7 +523,8 @@ $(document).on("click", "#jsonT td", function (e) {
             shape: {
                 units: makerjs.unitType.Centimeter,
                 models: {
-                    parcelle: makerjs.model.scale(new makerjs.models.ConnectTheDots(false, coords) , /* 100000 */ getScale(new makerjs.models.ConnectTheDots(false, coords), model.models.s2.models.mainFrame))
+                    parcelle: makerjs.model.scale(new makerjs.models.ConnectTheDots(false, coords) , /* 100000 */ 
+                    getScale(new makerjs.models.ConnectTheDots(false, coords), model.models.s2.models.mainFrame, "loading"))
                 },
                 paths: {
                 }
@@ -493,11 +534,11 @@ $(document).on("click", "#jsonT td", function (e) {
         }
     }
 
-    // hide sub template frames
+    // hide container's frames
     delete plan.models.frame;
-    // append sub template to  S2  sub Model in myModel() 
+    // append container to  S2  sub Model in myModel() 
     model.models.s2.models.shape = plan;
-    // let sub template centering sub models  
+    // center Parcell into the container  
     makerjs.model.center(plan.models.shape);
 
 
@@ -532,8 +573,6 @@ $(document).on("click", "#jsonT td", function (e) {
 
     ///////////////////////////////////////////////var model = singleShape(row_selected);
     render(model);
-
-
 });
 
 
@@ -717,6 +756,7 @@ function myModel() {
             },
             //Inner Left Rectangle apercue exploitation holder
             s9:{
+                
                 layer: "black",
                 paths: {},
                 models: {
@@ -836,9 +876,9 @@ function myModel() {
                     mainFrame: new makerjs.models.Rectangle(364.660, 548.210)
                 }
             },
-            //Inner left Rectangle  ichelle                 
+            //Inner left Rectangle  echelle                 
              s21: {
-                layer: "red",
+                layer: "black",
                 paths: {},
                 models: {
                     mainFrame: new makerjs.models.Rectangle(174.440, 13.00)
@@ -862,7 +902,7 @@ function myModel() {
             },
             //Inner left Rectangle
             s24:{
-                layer: "silver",
+                layer: "black",
                 paths: {},
                 models: {
                     mainFrame: new makerjs.models.Rectangle(175.570, 66.3680)
@@ -936,14 +976,144 @@ function allShapes(jsonCoords) {
         element.geometry.coordinates.forEach(elm => {
             elm.forEach(el => {
                 coords.push(el);
-                /* handle   edges*/
             })
 
             model.models[i] = new makerjs.models.ConnectTheDots(false, coords);
 
+            //allCoords.push(coords);
+            allParcelle.push(model.models[i]);
+
             coords = [];
             i++;
         });
+    }); 
+
+    /* // var positions = [];
+    //     var neighbours = [];
+
+    var _allCoords = data;
+    var boundary =  _allCoords[0]
+    
+    var daak = [];
+    var level1 = 0; 
+    var level2 = 0; 
+    var level3 = 0; 
+    var level4 = 0; 
+    var level5 = 0; 
+    var level6 = 0; 
+    allCoords.forEach(coord => {
+        
+        if(coord.length < 2){
+            coord.forEach(crd => {
+
+                crd.forEach(_crd => {
+                    daak.push(turf.turf.point(_crd));
+                    level3 ++;
+                })
+                
+                level2 ++;
+            })
+        }else{
+            coord.forEach(crd => {
+                crd.forEach(_crd => {
+                    if(_crd.length == 2){
+                        daak.push(turf.turf.point(_crd));
+                    }else{
+                        _crd.forEach(_crd_ => {
+                            daak.push(_crd_);
+                            level4 ++;
+                        });
+                    }
+                    level3 ++;
+                });
+
+                level2++;
+                
+            });
+        }
+        level1++;
     });
+
+    var polygon = turf.turf.convex(daak);
+
+    console.log('\n\nha daak :\n'+ JSON.stringify(daak))
+
+    for(var i=1 ; i < _allCoords.length; i++){
+
+        var coord = _allCoords[i];
+
+        var pol0 = turf.turf.polygon(coord.geometry.coordinates);
+        var poli = turf.turf.polygon(boundary.geometry.coordinates);
+
+        var bool = turf.turf.intersect(pol0, poli);
+
+        if(bool){
+            //saving neighboors for later use 
+            //neighbours.push(coord);
+
+            // combine the insersecting Parcelles 
+            var united  = turf.turf.union(pol0, poli);
+            _allCoords.slice(i, 1);
+            _allCoords.push(united)
+            i= i-1;
+        }
+        
+
+    } */
+
+
+
+    // // make boundaries
+
+    // var point;
+    // var polygon;
+    // var boundary = {
+    //     models: {
+    //         neighbours:{
+    //         }
+    //     }
+    // };
+
+
+
+    // //iter all coords 
+    // allCoords.forEach(coord => {
+    //     // iter all Points 
+    //     coord.forEach(pnt => {
+    //         // get point to check if its intersecting another Parcelle
+    //         point = pnt;
+            
+    //         // get all Parcelles One by One to test intersection
+    //         allParcelle.forEach(p => {
+    //             polygon = p;
+    //             // if point intersects polygon
+    //             if (geo.pointInPolygon(point, polygon)){
+
+    //                 //save parcelles by closest to farest One to The initiating parcelle (point of test)
+    //                 boundary.models.neighbours[]
+    //             }
+
+    //         });
+
+
+    //     })
+    // });
+
+    
+
     return model;
 }
+
+
+
+function download_txt() {
+    var textToSave = $('#text').val();
+    var hiddenElement = document.createElement('a');
+  
+    hiddenElement.href = 'data:attachment/text,' + /* encodeURI */(textToSave);
+    hiddenElement.target = '_blank';
+    hiddenElement.download = 'myModel.dxf';
+    hiddenElement.click();
+  }
+  
+  document.getElementById('test').addEventListener('click', download_txt);

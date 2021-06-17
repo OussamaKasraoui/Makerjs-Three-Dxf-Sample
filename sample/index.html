@@ -6,7 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="GeoJSON to XDF viewer" content="GeoJSON to .xdf CAD viewer">
     <!-- Bootstrap -->
-    <link rel="stylesheet" href="libs/css/style.css">
+    <link rel="stylesheet" href="libs/css/
+    style.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
@@ -28,6 +29,15 @@
     <!-- added by me    Makerjs-->
     <script src="https://cdn.jsdelivr.net/npm/makerjs@0/target/js/browser.maker.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bezier-js@2/bezier.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.7.4/proj4.js" integrity="sha512-kxAsb9bx+VKR80fTYBRPm2QRw1EPLkmvXqc07A3rBmZd+W84nvVRyDMvDHDi0kJRSGe24n00392O7w6pOQOzpA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.7.4/proj4-src.js" integrity="sha512-cnA1BbZIBxonSYqUREQx81aCCLhxmoDDEr50RzfL3keAUDhrzUDiulLCUpevo2K7ukZ9G9r69XvHyCRHtpmEIA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <!-- Turf JS -->
+   <script src='./turf.js'></script>
+    <!--  <script>
+        var bbox = turf.bbox(features);
+    </script> -->
 
     <script src="/dist/three-dxf.js"></script>
     <style>
@@ -127,6 +137,16 @@
             <div id="cad-view">
 
             </div>
+
+            <div id="controls">
+                <div style="height: 200px; width: 300px;" id="text"></div>
+                <button id="test"> here you can Download DXF as file !</button>
+            </div>
+        </div>
+        <div id="dxf-content-container">
+            <pre id="dxf-content">
+    
+            </pre>
         </div>
 
     </div>
