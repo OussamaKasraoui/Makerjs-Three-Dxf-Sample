@@ -1,22 +1,184 @@
-//const geo = require('geometric');
-//const turf = require('./turf');
 const makerjs = require('makerjs');
-
+const jsZip = turf.JSZip;
 var progress = document.getElementById('file-progress-bar');
 var $progress = $('.progress');
 
-var $cadview = $('#cad-view');
-var dxfContentEl = $('#dxf-content')[0];
-var cadCanvas;
-
-const data = [];
 var _font;
-var row_selected;
-var boundaries;
-var echelle;
 
 var allParcelle = [];
 var allCoords = [];
+var allDXF = [];
+
+// var $cadview = $('#cad-view');
+// var dxfContentEl = $('#dxf-content')[0];
+// var cadCanvas;
+
+// const data = [];
+// var row_selected;
+// var boundaries;
+// var echelle;
+
+const mapStyle = 'mapbox://styles/mapbox/light-v9';
+const accessToken = 'pk.eyJ1Ijoia2FzcmFvdWlvdXNzYW1hIiwiYSI6ImNqemN1MXF6YzAyZ3ozZ3J6OXgxcTEwengifQ.rGsVJ8ZJ2HW-0hcbtF3wig';
+const center = [-5.961763, 32.762239]
+const zoomLevel = 3;
+const container = 'map';
+const ressource = 'national-park';
+const ressourceName = 'national-park';
+const ressourceType = 'FeatureCollection';
+const ressourceObject = [
+    {
+        'type': 'Feature',
+        'geometry': {
+            'type': 'Polygon',
+            'coordinates': [
+                [
+                    [-121.353637, 40.584978],
+                    [-121.284551, 40.584758],
+                    [-121.275349, 40.541646],
+                    [-121.246768, 40.541017],
+                    [-121.251343, 40.423383],
+                    [-121.32687, 40.423768],
+                    [-121.360619, 40.43479],
+                    [-121.363694, 40.409124],
+                    [-121.439713, 40.409197],
+                    [-121.439711, 40.423791],
+                    [-121.572133, 40.423548],
+                    [-121.577415, 40.550766],
+                    [-121.539486, 40.558107],
+                    [-121.520284, 40.572459],
+                    [-121.487219, 40.550822],
+                    [-121.446951, 40.56319],
+                    [-121.370644, 40.563267],
+                    [-121.353637, 40.584978]
+                ]
+            ]
+        }
+    },
+    {
+        'type': 'Feature',
+        'geometry': {
+            'type': 'Point',
+            'coordinates': [-121.415061, 40.506229]
+        }
+    },
+    {
+        'type': 'Feature',
+        'geometry': {
+            'type': 'Point',
+            'coordinates': [-121.505184, 40.488084]
+        }
+    },
+    {
+        'type': 'Feature',
+        'geometry': {
+            'type': 'Point',
+            'coordinates': [-121.354465, 40.488737]
+        }
+    }
+];
+
+
+
+mapboxgl.accessToken = accessToken;
+const _map = new mapboxgl.Map({
+    container: container, // container id
+    style: mapStyle, // stylesheet location
+    center: center, // starting position [lng, lat]
+    zoom: zoomLevel // starting zoom
+});
+
+
+_map.on('load', function () {
+    _map.addSource(ressourceName, {
+        'type': 'geojson',
+        'data': {
+            'type': ressourceType,
+            'features': ressourceObject
+        }
+    });
+
+
+    // // set up the center marker
+    // const centerMarker = new mapboxgl.Marker();
+    // centerMarker.setLngLat(center);
+    // centerMarker.addTo(_map);
+    // // set up the custom control
+    // const createButton = (text, onclick) => {
+    //     const button = document.getElementById(text)
+    //     //button.setAttribute('type', 'button');
+    //     //button.appendChild(document.createTextNode(text));
+    //     button.addEventListener('click', onclick);
+    //     return button;
+    // };
+
+    // const markButton = () /*createButton('marquer', (ev)*/ => {
+    //     centerMarker.setLngLat(_map.getCenter());
+    // };
+
+    // const returnButton = ()/*createButton('centrer', (ev)*/ => {
+    //     _map.setCenter(centerMarker.getLngLat());
+    // };
+
+    // let lat, lng;
+    // const updateLatLon = (ev) => {
+    //     let currentCenter = _map.getCenter();
+    //     lat.textContent = currentCenter.lat.toFixed(6);
+    //     lng.textContent = currentCenter.lng.toFixed(6);
+    // };
+
+    // const mapboxglLatLngControl = {
+    //     onAdd: (map) => {
+    //         const latLonContainer = document.getElementById('data_container') //document.createElement('div');
+    //         latLonContainer.classList.add('lat-lng', 'mapboxgl-ctrl');
+    //         latLonContainer.classList.add('lat-lng');
+    //         //latLonContainer.classList.add('custom-control');
+    //         //latLonContainer.textContent = 'Centre: ';
+    //         lat = latLonContainer.appendChild(document.createElement('span'));
+    //         latLonContainer.appendChild(document.createTextNode(','));
+    //         lng = latLonContainer.appendChild(document.createElement('span'));
+    //         latLonContainer.appendChild(markButton);
+    //         latLonContainer.appendChild(returnButton);
+    //         map.on('moveend', updateLatLon);
+    //         updateLatLon();
+    //         return latLonContainer;
+    //     },
+    //     getDefaultPosition: () => {
+    //         return 'bottom-left'
+    //     },
+    //     onRemove: () => {
+    //         map.off('moveend', updateLatLon);
+    //     }
+    // };
+
+    // // _map.addControl(mapboxglLatLngControl);
+
+
+})
+
+
+// set up the center marker
+const centerMarker = new mapboxgl.Marker();
+centerMarker.setLngLat(center);
+centerMarker.addTo(_map);
+
+const returnButton = ()/*createButton('centrer', (ev)*/ => {
+    _map.setCenter(centerMarker.getLngLat());
+};
+
+const updateLatLon = (ev) => {
+    let lat = {};
+    let lng = {};
+
+    let currentCenter = _map.getCenter();
+    lat.textContent = currentCenter.lat.toFixed(6);
+    lng.textContent = currentCenter.lng.toFixed(6);
+};
+
+const markButton = () /*createButton('marquer', (ev)*/ => {
+    centerMarker.setLngLat(_map.getCenter());
+};
+
 
 // Setup the dnd listeners.
 var dropZone = $('.drop-zone');
@@ -40,6 +202,8 @@ function onFileSelected(evt) {
     reader.onabort = abortUpload;
     reader.onerror = errorHandler;
     reader.readAsText(file);
+    // Loader
+    $(".loader").css("visibility", "visible");
 }
 
 function abortUpload() {
@@ -74,63 +238,309 @@ function updateProgress(evt) {
 }
 
 function onSuccess(evt) {
+    
+    console.log("onsuccess  time start : " + new Date().toTimeString().split(' ')[0])
+
+    // get file content
     var fileReader = evt.target;
     if (fileReader.error) return console.log("error onloadend!?");
     progress.style.width = '100%';
     progress.textContent = '100%';
     setTimeout(function () { $progress.removeClass('loading'); }, 2000);
 
-    var jsonObject = JSON.parse(fileReader.result)
-    var tableRows = '';
+    // parse file contenet to GeoJSON object
+    var fileObject = JSON.parse(fileReader.result);
 
-    for (var i = 0; i < jsonObject.features.length; i++) {
-        // set element id
-        jsonObject.features[i].idRow = i;
+    /* Half Life  starts */
+    // parcelle points
+    let points = [];
 
-        var arr = jsonObject.features[i];
-        // save element to array for later use
-        data.push(arr);
-        // save coordinates for later use 
-        allCoords.push(arr.geometry.coordinates);
+    // all parcelles holder
+    let geos = [];
+    
+    let progresser = 100 / fileObject.features.length;
+    let progression = progresser;
+
+    for( var i = 0 ; i < fileObject.features.length; i++ ){
+        let feature = fileObject.features[i];
+
+        console.log(i)
 
 
-        tableRows +=
-            "<tr>"
-            + "<td scope='row' id='row_" + i + "'>" + arr.properties.N_ordre + "</td>"
-            + "<td scope='row' id='row_" + i + "'>" + arr.properties.NUMERO_DOSSIER + "</td>"
-            + "<td scope='row' id='row_" + i + "'>" + arr.properties.Nom_AR + "</td>"
-            + "<td scope='row' id='row_" + i + "'>" + arr.properties.NOm_FR + "</td>"
-            + "<td scope='row' id='row_" + i + "'>" + arr.properties.CIN + "</td>"
-            + "<td scope='row' id='row_" + i + "'>" + arr.properties.PROVINCE + "</td>"
-            + "<td scope='row' id='row_" + i + "'>" + arr.properties.CERCLE + "</td>"
-            + "<td scope='row' id='row_" + i + "'>" + arr.properties.CAIDAT + "</td>"
-            + "<td scope='row' id='row_" + i + "'>" + arr.properties.COMMUNE + "</td>"
-            + "<td scope='row' id='row_" + i + "'>" + arr.properties.LIEUX_RESIDENCE + "</td>"
-            + "<td scope='row' id='row_" + i + "'>" + arr.properties.QUALITE + "</td>"
-            + "<td scope='row' id='row_" + i + "'>" + arr.properties.cote_part_empietement + "</td>"
-            + "<td scope='row' id='row_" + i + "'>" + arr.properties.COLLECTIVITE_REF + "</td>"
-            + "<td scope='row' id='row_" + i + "'>" + arr.properties.REF_FONCIERE + "</td>"
-            + "<td scope='row' id='row_" + i + "'>" + arr.properties.CONSISTANCE + "</td>"
-            + "<td scope='row' id='row_" + i + "'>" + arr.properties.CODE_PARCELLE + "</td>"
-            + "<td scope='row' id='row_" + i + "'>" + arr.properties.SEXE + "</td>"
-            + "<td scope='row' id='row_" + i + "'>" + arr.properties.FRACTION + "</td>"
-            + "<td scope='row' id='row_" + i + "'>" + arr.properties.LISTE_AD + "</td>"
-            + "<td scope='row' id='row_" + i + "'>" + arr.properties.N_ORDRE_LISTE_AD + "</td>"
-            + "<td scope='row' id='row_" + i + "'>" + arr.properties.Superficie_Si + "</td>"
-            + "<td scope='row' id='row_" + i + "'>" + arr.properties.PLU_VALU_EXPLOITATION + "</td>"
-            + "<td scope='row' id='row_" + i + "'>" + arr.properties.LIVRAISON + "</td>"
-            + "<td scope='row' id='row_" + i + "'>" + arr.properties.INTEGRATION + "</td>"
-            + "<td scope='row' id='row_" + i + "'>" + arr.properties.ORGANISME + "</td>" +
-            + "<td scope='row' id='row_" + i + "_bu' hidden>" + JSON.stringify(arr) + "</td>" +
-            "</tr>";
+
+        animation(progression, i+1, fileObject.features.length)
+
+        // geoJSON instance : gonna be sent to MongoDB
+        var geojson = {};
+        //  DXF model
+        let model = myModel();
+        // grabbing all coordinates
+        feature.geometry.coordinates.forEach(element => {
+            element.forEach(elm => {
+                elm.forEach(el => {
+                    points.push(el);
+                })
+            });
+        });
+        //parcelle makerjs model
+        let parcelleMakerjs = new makerjs.models.ConnectTheDots(false, points);
+        
+        // Parcelle Layer container
+        var plan = {
+            layer: "red",
+            origin: [202, 282],
+            models: {
+                frame: new makerjs.models.Rectangle(202.00, 282.200),
+                shape: {
+                    units: makerjs.unitType.Centimeter,
+                    models: {
+                        parcelle: makerjs.model.scale(parcelleMakerjs, /* 100000 */
+                            getScale(parcelleMakerjs, model.models.s2, "loading"))
+                    },
+                    paths: {
+                    }
+                }
+            },
+            paths: {
+            }
+        }
+
+        // hide container's frames
+        //delete plan.models.frame;
+        // append container to  S2  sub Model in myModel() 
+        model.models.s2.models.shape = plan;
+        // center Parcell into the container  
+        makerjs.model.center(plan.models.shape);
+
+
+
+        //RightRect : right parcelle holder
+        var _plan = {
+            layer: "red",
+            origin: [87.21, 51.48],
+            models: {
+                frame: new makerjs.models.Rectangle(87.21, 51.48),
+                shape: {
+                    units: makerjs.unitType.Centimeter,
+                    models: {
+                        parcelle: makerjs.model.scale(parcelleMakerjs, /*_mdl 100000 _mdl*/ 
+                            getScale(parcelleMakerjs, model.models.s17.models.mainFrame, null))
+                    },
+                    paths: {
+                    }
+                }
+            },
+            paths: {
+            }
+        };
+
+        // //   hide sub template frames
+        // //   delete _plan.models.frame;
+        //delete textLayer.models.satellitaire.models.parcelle;
+        // append sub template to  S2  sub Model in myModel() 
+        model.models.s17.models.shape = _plan;
+        // let sub template centering sub models  
+        makerjs.model.center(_plan.models.shape);
+
+
+
+        //Left Rect : left parcelle holder
+        var _plan_ = {
+            layer: "blue",
+            origin: [87.345, 51.48],
+            models: {
+                frame: new makerjs.models.Rectangle(87.345, 51.48),
+                shape: {
+                    units: makerjs.unitType.Centimeter,
+                    models: {
+                        parcelle: (makerjs.model.scale(parcelleMakerjs, /*boundaries 100000 boundaries*/ getScale(parcelleMakerjs, model.models.s16.models.mainFrame, null) * 1.2))
+                    },
+                    paths: {
+                    }
+                }
+            },
+            paths: {
+            }
+        };
+
+        // // hide sub template frames
+        // delete _plan_.models.frame;
+        // delete textLayer.models.exploitation.models.parcelle;
+        // append sub template to  S2  sub Model in myModel() 
+        model.models.s16.models.shape = _plan_;
+        // let sub template centering sub models  
+        makerjs.model.center(_plan_.models.shape);
+
+
+        //console.log('\n\n' + 'cartouche ('+ i +')  = ' + JSON.stringify(cartouch) + '\n\n')
+        
+        geojson.DXF                     = parcelleMakerjs;
+        geojson.N_ordre                 = feature.properties.N_ordre;
+        geojson.NUMERO_DOSSIER          = feature.properties.NUMERO_DOSSIER;
+        geojson.Nom_AR                  = feature.properties.Nom_AR;
+        geojson.NOm_FR                  = feature.properties.NOm_FR;
+        geojson.CIN                     = feature.properties.CIN;
+        geojson.PROVINCE                = feature.properties.PROVINCE;
+        geojson.CERCLE                  = feature.properties.CERCLE;
+        geojson.CAIDAT                  = feature.properties.CAIDAT;
+        geojson.COMMUNE                 = feature.properties.COMMUNE;
+        geojson.LIEUX_RESIDENCE         = feature.properties.LIEUX_RESIDENCE;
+        geojson.QUALITE                 = feature.properties.QUALITE;
+        geojson.cote_part_empietement   = feature.properties.cote_part_empietement;
+        geojson.COLLECTIVITE_REF        = feature.properties.COLLECTIVITE_REF;
+        geojson.REF_FONCIERE            = feature.properties.REF_FONCIERE;
+        geojson.CONSISTANCE             = feature.properties.CONSISTANCE;
+        geojson.CODE_PARCELLE           = feature.properties.CODE_PARCELLE;
+        geojson.SEXE                    = feature.properties.SEXE;
+        geojson.FRACTION                = feature.properties.FRACTION;
+        geojson.LISTE_AD                = feature.properties.LISTE_AD;
+        geojson.N_ORDRE_LISTE_AD        = feature.properties.N_ORDRE_LISTE_AD;
+        geojson.Superficie_Si           = feature.properties.Superficie_Si;
+        geojson.PLU_VALU_EXPLOITATION   = feature.properties.PLU_VALU_EXPLOITATION;
+        geojson.LIVRAISON               = feature.properties.LIVRAISON;
+        geojson.INTEGRATION             = feature.properties.INTEGRATION;
+        geojson.ORGANISME               = feature.properties.ORGANISME;
+        geojson.Location                = feature.geometry;
+
+        geos.push(geojson);
+
+        progression += progresser;
+
+        
     }
-    $('#jsonTable').html(tableRows);
+    /* Half Life    ends */
+
+    // insert all Features at Onece
+    postData('http://localhost:8080/api/geojson', geos)
+        .then(data => {
+            
+    console.log("postData().then  time start : " + new Date().toTimeString().split(' ')[0])
+
+            // Get Points to draw Main Polygon
+            data.all_parcelles.forEach(element => {
+                element.coordinates.forEach(elm => {
+
+                    allCoords.push(elm);
+
+                    coords = [];
+                });
+            });
+
+            // collect all DXF files in one array
+            data.response.ops.forEach(parcelle => {
+                allDXF.push(parcelle);
+            })
 
 
-    var model = allShapes(jsonObject);
+            //  Get Bounding Box
+            var _bbox = turf.turf.bbox(fileObject)
+
+            console.log('_bbox : \n' + _bbox.toString());
+
+            // change map center 
+            // var bounds = point.reduce(function (bounds, coord) {
+            //     return bounds.extend(coord);
+            //     }, new mapboxgl.LngLatBounds(fileObject[0], fileObject[0]));
+
+            $(".loader").css("visibility", "hidden");
+            $(".data_container").css("visibility", "inherit");
+            $(".data_container").css("z-index", "1");
+
+            _map.fitBounds([
+                [_bbox[0], _bbox[1]],
+                [_bbox[2], _bbox[3]]
+            ], {
+                padding: 20
+            });
+
+            // Add a data source containing GeoJSON data.
+            _map.addSource('maine', {
+                'type': 'geojson',
+                'data': fileObject
+            });
+            // Add a new layer to visualize the polygon.
+            _map.addLayer({
+                'id': 'maine',
+                'type': 'fill',
+                'source': 'maine', // reference the data source
+                'layout': {},
+                'paint': {
+                    'fill-color': '#c50000', // blue color fill
+                    'fill-opacity': 0.5
+                }
+            });
+            // Add a black outline around the polygon.
+            _map.addLayer({
+                'id': 'outline',
+                'type': 'line',
+                'source': 'maine',
+                'layout': {},
+                'paint': {
+                    'line-color': '#ffffff',
+                    'line-width': 1
+                }
+            });
+
+            updateLatLon(0);
+            markButton();
+
+            // Table to List file content
+            var tableRows = '';
+            for (var i = 0; i < data.dataList.length; i++) {
+                // set element id
+                //data.dataList[i].idRow = i;
+
+                var document = data.dataList[i];
+                // save element to array for later use
+                //data.push(document);
+                // save coordinates for later use 
+                //allCoords.push(document.geometry.coordinates);
+
+
+                tableRows +=
+                    "<tr>"
+                    + "<td id='row_" + document._id + "' hidden>" + document._id + "</td>"
+                    + "<td id='row_" + document._id + "'>" + document.N_ordre + "</td>"
+                    + "<td id='row_" + document._id + "'>" + document.NUMERO_DOSSIER + "</td>"
+                    + "<td id='row_" + document._id + "'>" + document.Nom_AR + "</td>"
+                    + "<td id='row_" + document._id + "'>" + document.NOm_FR + "</td>"
+                    + "<td id='row_" + document._id + "'>" + document.CIN + "</td>"
+                    + "<td id='row_" + document._id + "'>" + document.PROVINCE + "</td>"
+                    + "<td id='row_" + document._id + "'>" + document.CERCLE + "</td>"
+                    + "<td id='row_" + document._id + "'>" + document.CAIDAT + "</td>"
+                    + "<td id='row_" + document._id + "'>" + document.COMMUNE + "</td>"
+                    + "<td id='row_" + document._id + "'>" + document.LIEUX_RESIDENCE + "</td>"
+                    + "<td id='row_" + document._id + "'>" + document.QUALITE + "</td>"
+                    + "<td id='row_" + document._id + "'>" + document.cote_part_empietement + "</td>"
+                    + "<td id='row_" + document._id + "'>" + document.COLLECTIVITE_REF + "</td>"
+                    + "<td id='row_" + document._id + "'>" + document.REF_FONCIERE + "</td>"
+                    + "<td id='row_" + document._id + "'>" + document.CONSISTANCE + "</td>"
+                    + "<td id='row_" + document._id + "'>" + document.CODE_PARCELLE + "</td>"
+                    + "<td id='row_" + document._id + "'>" + document.SEXE + "</td>"
+                    + "<td id='row_" + document._id + "'>" + document.FRACTION + "</td>"
+                    + "<td id='row_" + document._id + "'>" + document.LISTE_AD + "</td>"
+                    + "<td id='row_" + document._id + "'>" + document.N_ORDRE_LISTE_AD + "</td>"
+                    + "<td id='row_" + document._id + "'>" + document.Superficie_Si + "</td>"
+                    + "<td id='row_" + document._id + "'>" + document.PLU_VALU_EXPLOITATION + "</td>"
+                    + "<td id='row_" + document._id + "'>" + document.LIVRAISON + "</td>"
+                    + "<td id='row_" + document._id + "'>" + document.INTEGRATION + "</td>"
+                    + "<td id='row_" + document._id + "'>" + document.ORGANISME + "</td>" +
+                    "</tr>";
+
+            }
+            $('#jsonTable').html(tableRows);
+
+        
+    console.log("postData().then  time finish : " + new Date().toTimeString().split(' ')[0])
+        })
+        .catch(err => {
+            console.log('error from post data : \n' + JSON.stringify(err))
+        }) 
+
+    // Creat 'Parcelles' from fileObject
+    var model = allShapes(fileObject);
     boundaries = model;
     render(model);
-
 }
 
 function handleDragOver(evt) {
@@ -142,7 +552,7 @@ function handleDragOver(evt) {
 
 // Oussama Kasraoui
 /*      get Scaling Factor        */
-function getScale(model, container, stage){
+function getScale(model, container, stage) {
     // scale Factor 
     var factor;
 
@@ -159,27 +569,41 @@ function getScale(model, container, stage){
     var cBase = containerHeight > containerWidth ? containerHeight : containerWidth;
 
     // finding the scalling direction small2big or big2small
-    if(cBase > mBase){
+    if (cBase > mBase) {
         factor = (parseInt(cBase / mBase));
-        stage ==="loading" ? echelle = " 1 / " + factor.toString() : null;
-    }else{
-        factor = parseInt(mBase /cBase);
-        stage ==="loading" ? echelle = factor.toString() + " : 1" : null;
+        stage === "loading" ? echelle = " 1 / " + factor.toString() : null;
+    } else {
+        factor = parseInt(mBase / cBase);
+        stage === "loading" ? echelle = factor.toString() + " : 1" : null;
     }
 
-    
-    
+
+
     return factor / 2.5;
 }
 /*      loading Open Types.js fonts     */
 $(document).ready(function () {
+    $('#jsonT').dataTable();
+    var table = $('#jsonT').dataTable();
+
+    table.on('select', function (e, dt, type, indexes) {
+        if (type === 'row') {
+            var data = table.rows(indexes).data().pluck('id');
+
+            alert(data);
+
+            // do something with the ID of the selected items
+        }
+    });
+
 
     opentype.load('/sample/fonts/FreeSans-LrmZ.ttf', function (err, fontOpenTypeJS) {
 
         if (err) {
-            aler('the font could not be loaded :(');
+            //alert('the font could not be loaded :(/n'+ fontOpenTypeJS);
         } else {
             _font = fontOpenTypeJS;
+            //alert('the font could not be loaded :(\n'+_font);
         }
     });
 });
@@ -194,7 +618,7 @@ function render(object) {
     model = makerjs.exporter.toDXF(object);
 
     $('#text').val(model.toString());
-    $('#test').html("Now you can press to download");
+    $('#test').html("download");
 
 
     var dxf = parser.parseSync(model);
@@ -211,368 +635,65 @@ function render(object) {
 
 /*     Table Row Selected     */
 $(document).on("click", "#jsonT td", function (e) {
-    row_selected = e.currentTarget.id.slice(4);
-    var data_backup = $('#row_' + row_selected + '_bu').html();
+    let parcelle = e.currentTarget.id.slice(4);
 
-    var model = myModel();
-    var coords = [];
 
-    var textLayer = {
-        origin: [0, 0],
-        layer: 'black',
-        models: {
-            titre:{
-                layer: 'black',
-                models: {
+    console.log('Parcelle :\n' + JSON.stringify(parcelle))
+
+    fetch('http://localhost:8080/api/geojson/' + parcelle)
+        .then(response => response.body)
+        .then(rb => {
+            const reader = rb.getReader();
+
+            return new ReadableStream({
+                start(controller) {
+                    // The following function handles each data chunk
+                    function push() {
+                        // "done" is a Boolean and value a "Uint8Array"
+                        reader.read().then(({ done, value }) => {
+                            // If there is no more data to read
+                            if (done) {
+                                console.log('done', done);
+                                controller.close();
+                                return;
+                            }
+                            // Get the data and send it to the browser via the controller
+                            controller.enqueue(value);
+                            // Check chunks by logging to the console
+                            console.log(done, value);
+                            push();
+                        })
+                    }
+
+                    push();
                 }
-            },
-            localisation_administratif: {
-                layer: 'black',
-                models: {
-                }
-            },
-            donnees_fonciere: {
-                layer: 'black',
-                models: {
-                }
-            },
-            donnees_de_l_occupation:{
-                models: {
-                }
-            },
-            superficie:{
-                layer: "black",
-                models: {
-                }
-            },
-            satellitaire:{
-                layer: "black",
-                models: {
-                }
-            },
-            exploitation:{
-                layer: "black",
-                models: {
-                }
-            },
-            echelle:{
-                layer: "black",
-                models: {
-                }
-            },
-            visa:{
-                layer: "black",
-                models: {
-                }
-            }
+            });
+        })
+        .then(stream => {
+            // Respond with our stream
+            return new Response(stream, { headers: { "Content-Type": "text/html" } }).text();
+        })
+        .then(res => {
+            console.log('req.body:\n' + JSON.stringify(res.body))
 
-        },
-        paths: {
-        }
-    };
+            //let cartouche = res;
 
+            $('#jsonTree').css('visibility', 'hidden');
+            $('.rightSide').css('visibility', 'visible');
 
-    if (!data) {
-        data = [data_backup];
-    }
+            //render(res);
 
-    
-    // get parcelle points
-    data[row_selected].geometry.coordinates.forEach(element => {
-        element.forEach(elm => {
-            elm.forEach(el => {
-                coords.push(el);
-            })
-        });
-    });
-
-    // make model of points
-    var mdl = function (coords_) {
-        this.model = new makerjs.models.ConnectTheDots(false, coords_);
-        return this.model;
-    }
-    
-
-    /////////////   TEXT     ////////////////
-    ////////////    Variables to use:   ayant-droit
-    var ayant_droit = "plan parcellaire d'une exploitation d'un ayant droit";
-    // /* textLayer.models.title = new makerjs.models.Text(_font, data[row_selected].properties.CAIDAT, 72);
-
-    /*title  s4*/
-    textLayer.models.titre.models.l1 = new makerjs.models.Text(_font, 'ROYAUME DU MAROC', 6);
-    textLayer.models.titre.models.l1.origin = [154.440, 547.760]
-    textLayer.models.titre.models.l1.layer = "red";
-
-    textLayer.models.titre.models.l2 = new makerjs.models.Text(_font, 'Ministère de l\'interieur', 6);
-    textLayer.models.titre.models.l2.origin = [156.440, 539.760]
-    textLayer.models.titre.models.l2.layer = "green";
-
-    textLayer.models.titre.models.l3 = new makerjs.models.Text(_font, 'Secrétariat Général', 6);
-    textLayer.models.titre.models.l3.origin = [158.440, 531.760]
-    textLayer.models.titre.models.l3.layer = "black";
-
-    textLayer.models.titre.models.l4 = new makerjs.models.Text(_font, 'Direction des affaires', 6);
-    textLayer.models.titre.models.l4.origin = [156.440, 523.760]
-    textLayer.models.titre.models.l4.layer = "black";
-
-
-    // /*plan parcellaire */ 
-    textLayer.models.parcellaire = new makerjs.models.Text(_font, ayant_droit, 14);
-    textLayer.models.parcellaire.origin = [44, 500]
-    textLayer.models.parcellaire.layer = "lime";
-
-
-    // /* localisation administratif */
-    textLayer.models.localisation_administratif = new makerjs.models.Text(_font, "Localisation AdministratiF", 10);
-    textLayer.models.localisation_administratif.origin = [23.790, 475];
-    textLayer.models.localisation_administratif.layer = "black";
-
-    textLayer.models.localisation_administratif.models.l1 = new makerjs.models.Text(_font, "Province: " + data[row_selected].properties.PROVINCE, 8);
-    textLayer.models.localisation_administratif.models.l1.origin = [2, -15] ;
-    textLayer.models.localisation_administratif.models.l1.layer = "black";
-
-    textLayer.models.localisation_administratif.models.l2 = new makerjs.models.Text(_font, "Cercle: " + data[row_selected].properties.CERCLE, 8);
-    textLayer.models.localisation_administratif.models.l2.origin = [2, -27];
-    textLayer.models.localisation_administratif.models.l2.layer = "black";
- 
-    textLayer.models.localisation_administratif.models.l3 = new makerjs.models.Text(_font, "Caidat: " + data[row_selected].properties.CAIDAT, 8);
-    textLayer.models.localisation_administratif.models.l3.origin = [2, -39];
-    textLayer.models.localisation_administratif.models.l3.layer = "black";
-
-    textLayer.models.localisation_administratif.models.l4 = new makerjs.models.Text(_font, "Commune: " + data[row_selected].properties.COMMUNE, 8);
-    textLayer.models.localisation_administratif.models.l4.origin = [2, -51];
-    textLayer.models.localisation_administratif.models.l4.layer = "clack";
-
-    textLayer.models.localisation_administratif.models.l5 = new makerjs.models.Text(_font, "douar/Fraction: " + data[row_selected].properties.FRACTION, 8);
-    textLayer.models.localisation_administratif.models.l5.origin = [2, -65];
-    textLayer.models.localisation_administratif.models.l5.layer = "black";
-
-
-    // /* données fonciere */
-    textLayer.models.donnees_fonciere = new makerjs.models.Text(_font, 'données fonciere', 10);
-    textLayer.models.donnees_fonciere.origin = [207, 475];
-    textLayer.models.donnees_fonciere.layer = "black";
-
-    textLayer.models.donnees_fonciere.models.l1 = new makerjs.models.Text(_font, "reférence fonciere: " + data[row_selected].properties.REF_FONCIERE, 8);
-    textLayer.models.donnees_fonciere.models.l1.origin = [2, -20] ;
-    textLayer.models.donnees_fonciere.models.l1.layer = "black";
-
-    textLayer.models.donnees_fonciere.models.l2 = new makerjs.models.Text(_font, "Nom d'immeuble: " + data[row_selected].properties.CERCLE, 8);
-    textLayer.models.donnees_fonciere.models.l2.origin = [2, -40];
-    textLayer.models.donnees_fonciere.models.l2.layer = "black";
- 
-    textLayer.models.donnees_fonciere.models.l3 = new makerjs.models.Text(_font, "Collectivité Ethnique Proprietaire: " + data[row_selected].properties.COLLECTIVITE_REF, 7);
-    textLayer.models.donnees_fonciere.models.l3.origin = [2, -60];
-    textLayer.models.donnees_fonciere.models.l3.layer = "black";
-
-
-    // /* données de l'occupation */
-    textLayer.models.donnees_de_l_occupation = new makerjs.models.Text(_font, 'données de l\'occupation', 10);
-    textLayer.models.donnees_de_l_occupation.origin = [23.790, 392];
-    textLayer.models.donnees_de_l_occupation.layer = "black";
-
-    textLayer.models.donnees_de_l_occupation.models.l1 = new makerjs.models.Text(_font, "Numéro du Dossier: " + data[row_selected].properties.NUMERO_DOSSIER, 6);
-    textLayer.models.donnees_de_l_occupation.models.l1.origin = [2, -16] ;
-    textLayer.models.donnees_de_l_occupation.models.l1.layer = "black";
-
-    textLayer.models.donnees_de_l_occupation.models.l2 = new makerjs.models.Text(_font, "Numéro de la prcelle: " + data[row_selected].properties.CODE_PARCELLE, 6);
-    textLayer.models.donnees_de_l_occupation.models.l2.origin = [2, -34];
-    textLayer.models.donnees_de_l_occupation.models.l2.layer = "black";
-
-    textLayer.models.donnees_de_l_occupation.models.l3 = new makerjs.models.Text(_font, "Nom de l'expaloitant: " + data[row_selected].properties.NOm_FR, 6);
-    textLayer.models.donnees_de_l_occupation.models.l3.origin = [2, -52];
-    textLayer.models.donnees_de_l_occupation.models.l3.layer = "black";
-
-    textLayer.models.donnees_de_l_occupation.models.l4 = new makerjs.models.Text(_font, "Qualité de l'exploitant: " + data[row_selected].properties.QUALITE, 6);
-    textLayer.models.donnees_de_l_occupation.models.l4.origin = [2, -70];
-    textLayer.models.donnees_de_l_occupation.models.l4.layer = "clack";
-
-    // /* ta bleau des superficie */  //données de l'occupation
-    textLayer.models.superficie = new makerjs.models.Text(_font, 'Tableau des Superficies', 10);
-    textLayer.models.superficie.origin = [207, 392];
-    textLayer.models.superficie.layer = "black";
-
-    textLayer.models.superficie.models.frame = new makerjs.models.Text(_font, "Numéro du Dossier: " + data[row_selected].properties.NUMERO_DOSSIER, 8);
-    textLayer.models.superficie.models.frame.origin = [2, -24] ;
-    textLayer.models.superficie.models.frame.layer = "black";
-
-    textLayer.models.superficie.models.l2 = new makerjs.models.Text(_font, "Numéro de la prcelle: " + data[row_selected].properties.CODE_PARCELLE, 8);
-    textLayer.models.superficie.models.l2.origin = [2, -48];
-    textLayer.models.superficie.models.l2.layer = "black";
-
-
-
-    // /* echel */
-    textLayer.models.echelle = new makerjs.models.Text(_font, "Échelle: "+echelle, 10);
-    textLayer.models.echelle.origin = [206, 316];
-    textLayer.models.echelle.layer = "black";
-
-
-    /* photo */
-    // textLayer.models.title = new makerjs.models.Text(_font, 'plan parcellaire Green - AEFHIKLMNTVWXYZ', 24);
-    // textLayer.models.title = new makerjs.models.Text(_font, 'plan parcellaire Green - AEFHIKLMNTVWXYZ', 24);
-    
-
-    // /* apercue satellitaire */
-    textLayer.models.satellitaire = new makerjs.models.Text(_font, 'Aperçu sur fond d\'image Satellitaire en date du ' + new Date().toLocaleDateString(), 6.5);
-    textLayer.models.satellitaire.origin = [207, 178];
-    textLayer.models.satellitaire.layer = "black";
-
-    textLayer.models.satellitaire.models.parcelle = makerjs.cloneObject(model.models.s17);
-    textLayer.models.satellitaire.models.parcelle.origin = [-1.7, -103] ;
-    //textLayer.models.satellitaire.models.parcelle.layer = "black";
-
-    var _plan = {
-        layer: "red",
-        origin: [87.21, 51.48],
-        models: {
-            frame: new makerjs.models.Rectangle(87.21, 51.48),
-            shape: {
-                units: makerjs.unitType.Centimeter,
-                models: {
-                    parcelle: makerjs.model.scale(mdl(coords), /*_mdl 100000 _mdl*/ getScale(mdl(coords), model.models.s17.models.mainFrame, null))
-                },
-                paths: {
-                }
-            }
-        },
-        paths: {
-        }
-    };
-    
-    // hide sub template frames
-    delete _plan.models.frame;
-    delete textLayer.models.satellitaire.models.parcelle;
-    // append sub template to  S2  sub Model in myModel() 
-    model.models.s17.models.shape = _plan;
-    // let sub template centering sub models  
-    makerjs.model.center(_plan.models.shape);
-
-    
-
-    // /* appercue de l'exploiteur */
-    textLayer.models.exploitation = new makerjs.models.Text(_font, 'Aperçu de l\'exploitation par rapport à l\'immeuble Collectif', 6.5);
-    textLayer.models.exploitation.origin = [26.740, 177.760];
-    textLayer.models.exploitation.layer = "black";
-
-    textLayer.models.exploitation.models.t1 = new makerjs.models.Text(_font, data[row_selected].properties.N_ordre, 5);
-    textLayer.models.exploitation.models.t1.origin = [10, -10] ;
-    textLayer.models.exploitation.models.t1.layer = "black";
-
-    textLayer.models.exploitation.models.l1 = new makerjs.models.ConnectTheDots(false, [[14, -12], [100, -60]] );
-    textLayer.models.exploitation.models.l1.layer = "red";
-
-    textLayer.models.exploitation.models.parcelle = makerjs.cloneObject(model.models.s16);
-    textLayer.models.exploitation.models.parcelle.origin = [-1.7, -105] ;
-
-    var _plan_ = {
-        layer: "blue",
-        origin: [87.345, 51.48],
-        models: {
-            frame: new makerjs.models.Rectangle(87.345, 51.48),
-            shape: {
-                units: makerjs.unitType.Centimeter,
-                models: {
-                    parcelle: (makerjs.model.scale(mdl(coords) , /*boundaries 100000 boundaries*/ getScale(mdl(coords), model.models.s16.models.mainFrame, null)*1.2))
-                },
-                paths: {
-                }
-            }
-        },
-        paths: {
-        }
-    };
-    
-    // hide sub template frames
-    delete _plan_.models.frame;
-    delete textLayer.models.exploitation.models.parcelle;
-    // append sub template to  S2  sub Model in myModel() 
-    model.models.s16.models.shape = _plan_;
-    // let sub template centering sub models  
-    makerjs.model.center(_plan_.models.shape);
-
-    
-
-    /* topographe */
-    // textLayer.models.title = new makerjs.models.Text(_font, 'plan parcellaire Green - AEFHIKLMN8YZ', 24);
-
-    /* Visa */
-    textLayer.models.visa = new makerjs.models.Text(_font, 'Visa:', 10);
-    textLayer.models.visa.origin = [280, 58];
-    textLayer.models.visa.layer = "black";
-
-    textLayer.models.visa.models.l1 = new makerjs.models.ConnectTheDots(false, [[-1, -1], [23, -1]]);
-    textLayer.models.visa.models.l1.layer = "black";
-    
-
-    model.models["textLayer"] = textLayer;
-
-    ////////////////////////////////////////
-
-
-
-
-
-
-    // Parcelle Layer container
-    var plan =  {
-        layer: "red",
-        origin: [202, 282],
-        models: {
-            frame: new makerjs.models.Rectangle(202.00, 282.200),
-            shape: {
-                units: makerjs.unitType.Centimeter,
-                models: {
-                    parcelle: makerjs.model.scale(new makerjs.models.ConnectTheDots(false, coords) , /* 100000 */ 
-                    getScale(new makerjs.models.ConnectTheDots(false, coords), model.models.s2.models.mainFrame, "loading"))
-                },
-                paths: {
-                }
-            }
-        },
-        paths: {
-        }
-    }
-
-    // hide container's frames
-    delete plan.models.frame;
-    // append container to  S2  sub Model in myModel() 
-    model.models.s2.models.shape = plan;
-    // center Parcell into the container  
-    makerjs.model.center(plan.models.shape);
-
-
-    //plan.models.shape.models.parcelle = makerjs.model.scale(mdl, /* 100000 */ getScale(mdl, model.models.s18.models.mainFrame))
-    /* var miniPlan =  {
-        layer: "red",
-        origin: [202, 282],
-        models: {
-            frame: new makerjs.models.Rectangle(202.00, 282.200),
-            shape: {
-                units: makerjs.unitType.Centimeter,
-                models: {
-                    parcelle: makerjs.model.scale(_mdl, /* 100000 / getScale(_mdl, model.models.s18.models.mainFrame))
-                },
-                paths: {
-                }
-            }
-        },
-        paths: {
-        }
-    }
-
-    model.models.s18.models.shape = miniPlan;  */
-
-
-    // append textLayer to  S1  sub Model in myModel() 
-    model.models.s1.models.text = textLayer;
+        })
+        .catch(err => {
+            console.error("Error fetching DTB for cartouche:\n" + err.message);
+        })
 
 
 
 
 
     ///////////////////////////////////////////////var model = singleShape(row_selected);
-    render(model);
+
 });
 
 
@@ -582,7 +703,7 @@ function renderSVG(SVGobject) {
     let renderer = new THREE.SVGRenderer();
     renderer.setClearColor(0xffffff);
     renderer.setSize(600, 350);
-    document.getElementById('cad-view').appendChild(renderer.domElement);
+    document.getElementById('svgCanvas').appendChild(renderer.domElement);
 
     var camera = new THREE.PerspectiveCamera(75, 600 / 350, 0.1, 1000);
     camera.position.z = 35;
@@ -669,7 +790,7 @@ function myModel() {
                 }
             },
             //Inner Left Rectangle
-            s3:{
+            s3: {
                 layer: "black",
                 paths: {},
                 models: {
@@ -713,7 +834,7 @@ function myModel() {
                 }
             },
             //Inner Left Rectangle Plan Parcellaire
-            s5:{
+            s5: {
                 layer: "black",
                 paths: {},
                 models: {
@@ -721,7 +842,7 @@ function myModel() {
                 }
             },
             //Inner Left Rectangle Administratif fonciere
-            s6:{
+            s6: {
                 layer: "black",
                 paths: {},
                 models: {
@@ -747,7 +868,7 @@ function myModel() {
                 }
             },
             //Inner Left Rectangle photo
-            s8:{
+            s8: {
                 layer: "black",
                 paths: {},
                 models: {
@@ -755,8 +876,7 @@ function myModel() {
                 }
             },
             //Inner Left Rectangle apercue exploitation holder
-            s9:{
-                
+            s9: {
                 layer: "black",
                 paths: {},
                 models: {
@@ -764,7 +884,7 @@ function myModel() {
                 }
             },
             //Inner Left Rectangle Visa
-            s10:{
+            s10: {
                 layer: "teal",
                 paths: {},
                 models: {
@@ -772,7 +892,7 @@ function myModel() {
                 }
             },
             //Inner right Rectangle KeyMap
-            s11:{
+            s11: {
                 layer: "fuchsia",
                 paths: {},
                 models: {
@@ -780,7 +900,7 @@ function myModel() {
                 }
             },
             //Inner right Rectangle
-            s12:{
+            s12: {
                 layer: "navy",
                 paths: {},
                 models: {
@@ -851,7 +971,7 @@ function myModel() {
                 models: {
                     mainFrame: new makerjs.models.Rectangle(174.420, 102.960)
                 }
-            } ,
+            },
             //cadre photo
             s18: {
                 layer: "black",
@@ -861,13 +981,13 @@ function myModel() {
                 }
             },
             //Inner left Rectangle
-            s19:{
+            s19: {
                 layer: "black",
                 paths: {},
                 models: {
                     mainFrame: new makerjs.models.Rectangle(174.980, 75.000)
                 }
-            } ,
+            },
             //Inner left Rectangle 
             s20: {
                 layer: "black",
@@ -877,7 +997,7 @@ function myModel() {
                 }
             },
             //Inner left Rectangle  echelle                 
-             s21: {
+            s21: {
                 layer: "black",
                 paths: {},
                 models: {
@@ -885,7 +1005,7 @@ function myModel() {
                 }
             },
             //Inner left Rectangle
-            s22:{
+            s22: {
                 layer: "black",
                 paths: {},
                 models: {
@@ -893,7 +1013,7 @@ function myModel() {
                 }
             },
             //Inner left Rectangle
-            s23:{
+            s23: {
                 layer: "pink",
                 paths: {},
                 models: {
@@ -901,7 +1021,7 @@ function myModel() {
                 }
             },
             //Inner left Rectangle
-            s24:{
+            s24: {
                 layer: "black",
                 paths: {},
                 models: {
@@ -909,7 +1029,7 @@ function myModel() {
                 }
             },
             //Inner left Rectangle Title
-            s25:{
+            s25: {
                 layer: "black",
                 paths: {},
                 models: {
@@ -934,18 +1054,18 @@ function myModel() {
     output.models.s12.origin = [19.670, 6];		//ok
     output.models.s13.origin = [26, 9.500];		//ok
     output.models.s14.origin = [205.110, 20.030];	//
-    
+
     // aperçu de l'exploitation
     output.models.s15.origin = [249.610, 7.280];		//
-    output.models.s16.origin = [25.720, 72.760];		
+    output.models.s16.origin = [25.720, 72.760];
     //cadre photo
-   output.models.s17.origin = [205.470, 72.760];
-   	// image satellitaire
-    output.models.s18.origin = [102.400, 189.030];		
+    output.models.s17.origin = [205.470, 72.760];
+    // image satellitaire
+    output.models.s18.origin = [102.400, 189.030];
     //
-    output.models.s19.origin = [23.1, 313.580];		
+    output.models.s19.origin = [23.1, 313.580];
     //
-    output.models.s20.origin = [19.670, 6];		
+    output.models.s20.origin = [19.670, 6];
     //
     output.models.s21.origin = [204.250, 313.580];		//
     output.models.s22.origin = [204.250, 327.700];		//
@@ -986,7 +1106,24 @@ function allShapes(jsonCoords) {
             coords = [];
             i++;
         });
-    }); 
+    });
+
+
+    function wgs84TOepsg26192(geojson){
+
+        var wgs84 = geojson; 
+        var epsg26192 = geojson;
+
+        var from = "+proj=gnom +lat_0=90 +lon_0=0 +x_0=6300000 +y_0=6300000 +ellps=WGS84 +datum=WGS84 +units=m +no_defs";
+        var to = "+proj=lcc +lat_1=29.7 +lat_0=29.7 +lon_0=-5.4 +k_0=0.9996155960000001 +x_0=500000 +y_0=300000 +a=6378249.2 +b=6356515 +towgs84=31,146,47,0,0,0,0 +units=m +no_defs ";
+
+        proj4(from, to, geojson);
+
+        geojson.forEach(geo => {
+
+        })
+    }
+
 
     /* // var positions = [];
     //     var neighbours = [];
@@ -1082,7 +1219,7 @@ function allShapes(jsonCoords) {
     //     coord.forEach(pnt => {
     //         // get point to check if its intersecting another Parcelle
     //         point = pnt;
-            
+
     //         // get all Parcelles One by One to test intersection
     //         allParcelle.forEach(p => {
     //             polygon = p;
@@ -1099,21 +1236,231 @@ function allShapes(jsonCoords) {
     //     })
     // });
 
-    
-
     return model;
 }
 
 
 
-function download_txt() {
-    var textToSave = $('#text').val();
-    var hiddenElement = document.createElement('a');
-  
-    hiddenElement.href = 'data:attachment/text,' + /* encodeURI */(textToSave);
-    hiddenElement.target = '_blank';
-    hiddenElement.download = 'myModel.dxf';
-    hiddenElement.click();
-  }
-  
-  document.getElementById('test').addEventListener('click', download_txt);
+function downloadZip() {
+
+    var zip = new turf.jszip();
+
+    var fldr = zip.folder("DXF folder")
+
+
+    allDXF.forEach(parcelle => {
+        let dxf = parcelle.DXF;
+
+        // parcelle
+        var mdl = new makerjs.models.ConnectTheDots(false, coords );
+        mdl.layer = "red";
+        //console.log('mdl-- origin bf scale : ' + dxf.paths.ShapeLine1.origin);
+
+        var scaleval = getScale(myModel(), mdl, "loading") * 10
+
+
+        // resize cartouche
+        var model = makerjs.model.distort(dxf, scaleval, scaleval);
+        console.log('model origin fb scale : ' + model.origin);
+
+        
+        model.origin = mdl.paths.ShapeLine1.origin
+        model.origin =  turf.turf.centroid(mdl.Location)
+
+        mdl.models = {
+            cartouche : model
+        }
+
+
+
+        fldr.file("dxf_" + parcelle.N_ordre + ".dxf", makerjs.exporter.toDXF(mdl))
+    })
+    zip.generateAsync({ type: "blob" })
+        .then(function (content) {
+            // see FileSaver.js
+            turf.fileSaver.saveAs(content, "example.zip");
+        });
+}
+
+// Upload Data to Backend
+// POST method implementation:
+async function postData(url = '', data = {}) {
+    // Default options are marked with *
+    const response = await fetch(url, {
+        method: 'POST', // *GET, POST, PUT, DELETE, etc.
+        mode: 'cors', // no-cors, *cors, same-origin
+        cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+        credentials: 'same-origin', // include, *same-origin, omit
+        headers: {
+            'Content-Type': 'application/json'
+            // 'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        redirect: 'follow', // manual, *follow, error
+        referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+        body: JSON.stringify(data) // body data type must match "Content-Type" header
+    });
+    return response.json(); // parses JSON response into native JavaScript objects
+}
+
+function animation(total, i, count) {
+    
+    // Loader
+    $(".loader").css("visibility", "hidden");
+
+    var _width = $('#dbProgress').width();
+    // _width = parseFloat(_width.substr(0, _width.length - 2))
+
+    $('#dbBar').animate({
+        'width': (_width * total) / 100
+    }, 100)
+
+    $({ counter: 0 }).animate({ counter: total }, {
+        duration: 3000,
+        step: function () {
+            $('#dbBar').text(i+'/'+count)
+        }
+    })
+}
+
+function fetchPromise(url, item) {
+    var httpHeaders = {
+        method: 'POST', // *GET, POST, PUT, DELETE, etc.
+        mode: 'cors', // no-cors, *cors, same-origin
+        cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+        credentials: 'same-origin', // include, *same-origin, omit
+        headers: {
+            'Content-Type': 'application/json'
+            // 'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        redirect: 'follow', // manual, *follow, error
+        referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+        body: JSON.stringify(item) // body data type must match "Content-Type" header
+    };
+
+    return new Promise(() => fetch(url, httpHeaders))
+}
+
+function saveAsync(url, item) {
+    item.from = "saveAsync(url, item)"
+    fetchPromise(url, item)
+        .then(res => {
+            res.from = "saveAsync(url, item)"
+
+            console.log('\n\n saveAsync(url, item) res =  ' + JSON.stringify(res))
+
+            return res;
+        })
+        .catch(err => {
+            console.error("\n\nError while saving items individually to DTB :\n" + JSON.stringify(err));
+        })
+}
+
+const forLoop_ = async (fileObject, url) => {
+    // collect all items in One [Array, of, objects ...]
+    var Features = [];
+    fileObject.features.forEach(feature => {
+        // Keep a Copy of sent Data to Handle in case of Error
+        Features.push(feature);
+    });
+
+    // Progress bar animator
+    var size = Features.length;
+    var indic = 100 / size;
+    var recent = 0;
+
+    console.log("Start");
+
+
+
+    // for (var i = 0; i < size; i++) {
+    while (true) {
+
+        const feature = Features[i];
+
+        feature.from = "forLoop(fileObject, url)";
+
+        const saved = await saveAsync(url, feature);
+
+        //alert('\n\nitem '+ i +' saved :\n' + JSON.stringify(saved))
+        console.log('\n\nitem ' + i + ' saved :\n' + JSON.stringify(saved))
+
+
+        // if saving == OK
+        if (saved) {
+
+            recent += indic
+            // console.log('recent = ' + recent);
+            animation(Math.ceil(recent));
+
+        } else {
+            //alert('\n\nerror occured while saving item '+ i +' :\n' + JSON.stringify(saved))
+            console.error('\n\nerror occured while saving item ' + i + ' :\n' + JSON.stringify(saved))
+        }
+
+
+    }
+    console.log("end");
+
+
+};
+
+
+
+// promise based function 
+const wait = ms => {
+    return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+// intermediate func 
+const insertNwait = feature => {
+
+    return wait(10000).then(v => {
+        var url = 'http://localhost:8080/api/geojson/s';
+        // start //
+        fetchPromise(url, feature)
+            .then(res => {
+                res.from = "saveAsync(url, feature)"
+
+                console.log('\n\n saveAsync(url, feature) res =  ' + JSON.stringify(res))
+
+                return res;
+            })
+            .catch(err => {
+                console.error("\n\nError while saving items individually to DTB :\n" + JSON.stringify(err));
+            })
+
+        // end  //
+
+        //Features[feature]
+
+    })
+}
+
+
+const insertLoop = async (array) => {
+    // Array to iterate
+    var Features = [];
+    array.forEach(feature => {
+        // Keep a Copy of sent Data to Handle in case of Error
+        Features.push(feature);
+    });
+
+    console.log('Start')
+
+    for (let index = 0; index < Features.length; index++) {
+
+
+
+        const feature = Features[index]
+        const saved = await insertNwait(feature)
+        console.log("iter : " + index + ' finished  \nsaved : \n ' + JSON.stringify(saved))
+    }
+
+    console.log('End')
+}
+
+
+
+document.getElementById('telecharger').addEventListener('click', downloadZip);
+document.getElementById('centrer').addEventListener('click', markButton);
+document.getElementById('marquer').addEventListener('click', returnButton);

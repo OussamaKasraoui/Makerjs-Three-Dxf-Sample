@@ -4,5 +4,7 @@ module.exports = {
     bbox: require('@turf/bbox'),
     turf: require('@turf/turf'),
     geometrtic: require('geometric'),
-    fs: require('fs')
+    jszip: require('jszip'),
+    fs: require('fs'),
+    fileSaver: require('file-saver')
 };

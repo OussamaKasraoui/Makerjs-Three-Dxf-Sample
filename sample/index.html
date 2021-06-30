@@ -6,9 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="GeoJSON to XDF viewer" content="GeoJSON to .xdf CAD viewer">
     <!-- Bootstrap -->
-    <link rel="stylesheet" href="libs/css/
-    style.css">
+    <link rel="stylesheet" href="libs/css/style.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
@@ -35,11 +37,21 @@
 
     <!-- Turf JS -->
    <script src='./turf.js'></script>
-    <!--  <script>
-        var bbox = turf.bbox(features);
-    </script> -->
+
+   
+    <!-- Mapbox -->
+    <script src='https://api.mapbox.com/mapbox-gl-js/v2.3.1/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v2.3.1/mapbox-gl.css' rel='stylesheet' />
 
     <script src="/dist/three-dxf.js"></script>
+
+    
+    <script src="/sample/js/jszip.js"></script>
+
+    <script src="/sample/js/datatables-jquery.js"></script>
+    <script src="/sample/js/datatables.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.css">
+
     <style>
         #cad-view {
             display: inline-block;
@@ -64,113 +76,190 @@
             opacity: 1;
         }
     </style>
+
+    <!-- <script>
+        $("#closeMdl").click(()=>{
+            $("#").hide();
+            $('#').hide();
+        });
+    </script> -->
+
 </head>
 
-<body>
-    <div class="row">
-        <nav class="navbar navbar-overidden mx-auto">
-            <a class="navbar-brand" href="#">
-                <img src="/sample/data/cropped-Mapping.png" alt="mapping-technolofgies" style="width:120px;">
-            </a>
-            <div role="form">
-                <div class="form-group">
-                    <label for="exampleInputFile">Choose a JSON file</label>
-                    <input type="file" accept=".json" id="dxf" name="file">
-                    <div class="progress progress-striped" style="width: 300px;">
-                        <div id="file-progress-bar" class="progress-bar progress-bar-success" role="progressbar"
-                            style="width: 0">
+<body style="height: 100vh;">
+    <div style="height: 100vh; width: 100%; position: fixed;">   
+        
+        <div class="loader" style="visibility: hidden;"></div>
+
+        <!-- nav bar -->
+        <div class="row justify-content-center" style="height: 50px;">
+            <nav class="navbar navbar-overidden mx-auto d-flex p-2 my_controls" style=" width: 80%; height: 50px; background-color: white; z-index: 1;">
+                <a class="navbar-brand" href="#">
+                    <img src="/sample/data/cropped-Mapping.png" alt="mapping-technolofgies" class="logo">
+                </a>
+                <div role="form" class="uploadHolder">
+                    <div class="form-group">
+                        <label for="exampleInputFile">Choose a JSON file</label>
+                        <input type="file" accept=".json" id="dxf" name="file">
+                        <div class="progress progress-striped" style="width: 300px;">
+                            <div id="file-progress-bar" class="progress-bar progress-bar-success" role="progressbar"
+                                style="width: 0">
+                            </div>
+                        </div>
+                        <!--div id="file-description" class="help-block"></div-->
+                    </div>
+
+                </div>
+
+                <!-- Progress Bar -->
+                <div id="dbProgress" class="">
+                    <div id="dbBar" class=""></div>
+                </div>
+            </nav>
+        </div>
+
+        <!-- Left side bar -->
+        <div style="margin: 0px 0px 10px 0px;" class="data_container my_controls" id="data_container">
+
+            <div class="leftSide sidebar" style="/*border: 3px blue solid;*/">
+                <a id="afficher"    href="#afficher" data-toggle="modal" data-target="#exampleModalLong"><i class="fa fa-fw fa-table"></i> Afficher</a>
+                <a id="telecharger" href="#telecharger" onclick="downloadZip"><i class="fa fa-fw fa-download"></i> Télécharger</a>
+                <a id="envoyer"     href="#envoyer" ><i class="fa fa-fw fa-envelope"></i> Envoyer</a>
+                <a id="centrer"     href="#centrer"     onclick="returnButton"><i class="fa fa-fw fa-map-marker"></i> marquer</a>
+                <a id="marquer"     href="#marquer"     onclick="markButton"><i class="fa fa-fw fa-map"></i> Centrer</a>
+                <a id="actualiser"  href="#actualiser"><i class="fa fa-fw fa-refresh"></i> Actualiser</a>
+            </div>
+        </div>
+
+        <!-- Data Container -->
+        <div class="my_controls data_containerModal" id="geoTable">
+
+            <div class="rightSide">
+
+                <div id="cad-view">
+
+                </div>
+
+                <div id="controls">
+                    <div style="height: 200px; width: 300px;" id="text"></div>
+                    <button id="test"> here you can Download DXF as file !</button>
+                </div>
+            </div>
+            
+            <div id="dxf-content-container">
+                <pre id="dxf-content">
+        
+                </pre>
+            </div>
+        </div>   
+
+
+        
+
+
+        <div class="container-fluid" id="map" style="height: 100vh; width: 100%; position: absolute; top: 0; left: 0;">
+
+        </div>
+    </div>
+
+
+    <!-- Modal -->
+    <div class="modal fade" id="exampleModalLong" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle"
+        aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">Modal title</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!-- Data Tables -->                    
+                    <div  id="jsonTree" class="table-responsive">
+        
+                        <!-- <table id="jsonT" class="modal-content table table-hover table-striped table-bordered table-sm"> -->
+                            <table id="jsonT" class="display">
+                            
+                            <thead>
+                                <tr>
+                                    <th hidden>ID</th>
+                                    <th>N ordre</th>
+                                    <th>NUMERO DOSSIER</th>
+                                    <th>Nom AR</th>
+                                    <th>NOm FR</th>
+                                    <th>CIN</th>
+                                    <th>PROVINCE</th>
+                                    <th>CERCLE</th>
+                                    <th>CAIDAT</th>
+                                    <th>COMMUNE</th>
+                                    <th>LIEUX RESIDENCE</th>
+                                    <th>QUALITE</th>
+                                    <th>cote part empietement</th>
+                                    <th>COLLECTIVITE REF</th>
+                                    <th>REF FONCIERE</th>
+                                    <th>CONSISTANCE</th>
+                                    <th>CODE PARCELLE</th>
+                                    <th>SEXE</th>
+                                    <th>FRACTION</th>
+                                    <th>LISTE AD</th>
+                                    <th>N ORDRE LISTE AD</th>
+                                    <th>Superficie Si</th>
+                                    <th>PLU VALU EXPLOITATION</th>
+                                    <th>LIVRAISON</th>
+                                    <th>INTEGRATION</th>
+                                    <th>ORGANISME</th>
+                                </tr>
+                            </thead>
+                
+                            <tbody id="jsonTable">
+                
+                            </tbody>
+                        </table>
+
+                         <!-- DXF viewer -->
+                    <div class="rightSide">
+
+                        <div id="cad-view">
+        
+                        </div>
+        
+                        <div id="controls">
+                            <div style="height: 200px; width: 300px;" id="text"></div>
+                            <button id="test"> here you can Download DXF as file !</button>
                         </div>
                     </div>
-                    <!--div id="file-description" class="help-block"></div-->
+
+
+                    </div>
+
+                    <div hidden id="dropDownList">
+                        <label for="cars">Choose a car:</label>
+                        <select name="cars" id="cars">
+                        <option value="volvo">Volvo</option>
+                        <option value="saab">Saab</option>
+                        <option value="mercedes">Mercedes</option>
+                        <option value="audi">Audi</option>
+                        </select>
+                    </div>
+
+                    <div id='svgCanvas'>
+
+                    </div>
+                   
+
+
                 </div>
-
-            </div>
-        </nav>
-    </div>
-
-    <div class="row no-gutters data_container">
-
-        <div class="col-lg-6 col-md-6 col-sm-12 col-6 leftSide" style="border: 1px red solid;">
-            
-                <div id="jsonTree" class="table-responsive">
-
-                    <table id="jsonT" class="table table-hover table-striped table-bordered table-sm" >
-                        <thead>
-                            <tr>
-                                <th scope="col">N ordre</th>
-                                <th scope="col">NUMERO DOSSIER</th>
-                                <th scope="col">Nom AR</th>
-                                <th scope="col">NOm FR</th>
-                                <th scope="col">CIN</th>
-                                <th scope="col">PROVINCE</th>
-                                <th scope="col">CERCLE</th>
-                                <th scope="col">CAIDAT</th>
-                                <th scope="col">COMMUNE</th>
-                                <th scope="col">LIEUX RESIDENCE</th>
-                                <th scope="col">QUALITE</th>
-                                <th scope="col">cote part empietement</th>
-                                <th scope="col">COLLECTIVITE REF</th>
-                                <th scope="col">REF FONCIERE</th>
-                                <th scope="col">CONSISTANCE</th>
-                                <th scope="col">CODE PARCELLE</th>
-                                <th scope="col">SEXE</th>
-                                <th scope="col">FRACTION</th>
-                                <th scope="col">LISTE AD</th>
-                                <th scope="col">N ORDRE LISTE AD</th>
-                                <th scope="col">Superficie Si</th>
-                                <th scope="col">PLU VALU EXPLOITATION</th>
-                                <th scope="col">LIVRAISON</th>
-                                <th scope="col">INTEGRATION</th>
-                                <th scope="col">ORGANISME</th>
-                                <th scope="col" hidden>buObject</th>
-                            </tr>
-                        </thead>
-
-                        <tbody id="jsonTable">
-
-                        </tbody>
-                    </table>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary">Save changes</button>
                 </div>
-        </div>
-
-        <div class="col-lg-6 col-md-6 col-sm-12 col-6 rightSide" style="border: 1px yellow solid;">
-            <div id="cad-view">
-
-            </div>
-
-            <div id="controls">
-                <div style="height: 200px; width: 300px;" id="text"></div>
-                <button id="test"> here you can Download DXF as file !</button>
             </div>
         </div>
-        <div id="dxf-content-container">
-            <pre id="dxf-content">
-    
-            </pre>
-        </div>
-
     </div>
-
-    <input hidden id="selectedRow" value="all"/>
-    <script src="index.js"></script>
-    <!--script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
-        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
-        crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
-        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
-        crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
-        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
-        crossorigin="anonymous"></script>
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
-        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
-        crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
-        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
-        crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
-        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
-        crossorigin="anonymous"></script-->
+        
+        <input hidden id="selectedRow" value="all"/>
+        <script src="index.js"></script>
 </body>
 
 </html>
